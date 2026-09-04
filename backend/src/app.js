@@ -1,6 +1,7 @@
 const express = require("express");
 
 const studentRoutes = require("./modules/student/student.routes");
+const skillRoutes = require("./modules/skills/skill.routes");
 
 const app = express();
 
@@ -18,10 +19,11 @@ app.get("/api/test", (req, res) => {
 
 
 // STUDENT API
-app.use(
-    "/api/students",
-    studentRoutes
-);
+app.use("/api/students", studentRoutes);
+
+
+// SKILL API
+app.use("/api/skills", skillRoutes);
 
 
 // ROOT

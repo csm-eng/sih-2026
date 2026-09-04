@@ -1,10 +1,22 @@
 const mongoose = require("mongoose");
-const Student = require("../../models/Student");
+const Student = require("../../models/student");
 
+
+const normalizeFields = (data) => {
+    const copy = { ...data };
+    if (copy.skills && Array.isArray(copy.skills)) {
+        copy.skills = copy.skills.map(s => typeof s === "string" ? s : (s && s.name ? s.name : String(s)));
+    }
+    if (copy.projects && Array.isArray(copy.projects)) {
+        copy.projects = copy.projects.map(p => typeof p === "string" ? p : (p && p.title ? p.title : String(p)));
+    }
+    return copy;
+};
 
 // CREATE STUDENT
 const createStudent = async (studentData) => {
-    const student = new Student(studentData);
+    const normalized = normalizeFields(studentData);
+    const student = new Student(normalized);
 
     return await student.save();
 };
@@ -44,9 +56,11 @@ const updateStudent = async (id, studentData) => {
         throw error;
     }
 
+    const normalized = normalizeFields(studentData);
+
     const student = await Student.findByIdAndUpdate(
         id,
-        studentData,
+        normalized,
         {
             new: true,
             runValidators: true
