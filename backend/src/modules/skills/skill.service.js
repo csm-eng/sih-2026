@@ -1,22 +1,15 @@
 const mongoose = require("mongoose");
 const Skill = require("../../models/Skill");
 
-
-// CREATE SKILL
 const createSkill = async (skillData) => {
     const skill = new Skill(skillData);
-
     return await skill.save();
 };
 
-
-// GET ALL SKILLS
 const getAllSkills = async () => {
-    return await Skill.find();
+    return await Skill.find().sort({ createdAt: -1 });
 };
 
-
-// GET ONE SKILL
 const getSkillById = async (id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         const error = new Error("Invalid skill ID");
@@ -35,8 +28,6 @@ const getSkillById = async (id) => {
     return skill;
 };
 
-
-// UPDATE SKILL
 const updateSkill = async (id, skillData) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         const error = new Error("Invalid skill ID");
@@ -62,8 +53,6 @@ const updateSkill = async (id, skillData) => {
     return skill;
 };
 
-
-// DELETE SKILL
 const deleteSkill = async (id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         const error = new Error("Invalid skill ID");
@@ -81,7 +70,6 @@ const deleteSkill = async (id) => {
 
     return skill;
 };
-
 
 module.exports = {
     createSkill,

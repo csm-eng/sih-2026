@@ -1,78 +1,50 @@
 const skillService = require("./skill.service");
 
-
-// CREATE SKILL
-const createSkill = async (req, res) => {
+const createSkill = async (req, res, next) => {
     try {
         console.log("Received skill:", req.body);
 
         const skill = await skillService.createSkill(req.body);
 
         res.status(201).json({
+            success: true,
             message: "Skill created successfully",
             data: skill
         });
-
     } catch (error) {
-        console.error("Create skill error:", error);
-
-        if (error.code === 11000) {
-            return res.status(400).json({
-                message: "Skill already exists"
-            });
-        }
-
-        res.status(error.statusCode || 500).json({
-            message: error.message
-        });
+        next(error);
     }
 };
 
-
-// GET ALL SKILLS
-const getSkills = async (req, res) => {
+const getSkills = async (req, res, next) => {
     try {
         const skills = await skillService.getAllSkills();
 
         res.status(200).json({
+            success: true,
             message: "Skills fetched successfully",
             data: skills
         });
-
     } catch (error) {
-        console.error("Get skills error:", error);
-
-        res.status(500).json({
-            message: error.message
-        });
+        next(error);
     }
 };
 
-
-// GET ONE SKILL
-const getSkillById = async (req, res) => {
+const getSkillById = async (req, res, next) => {
     try {
-        const skill = await skillService.getSkillById(
-            req.params.id
-        );
+        const skill = await skillService.getSkillById(req.params.id);
 
         res.status(200).json({
+            success: true,
             message: "Skill fetched successfully",
             data: skill
         });
-
     } catch (error) {
-        console.error("Get skill error:", error);
-
-        res.status(error.statusCode || 500).json({
-            message: error.message
-        });
+        next(error);
     }
 };
 
-
-// UPDATE SKILL
-const updateSkill = async (req, res) => {
+const updateSkill = async (req, res, next) => {
     try {
         const skill = await skillService.updateSkill(
             req.params.id,
@@ -80,38 +52,27 @@ const updateSkill = async (req, res) => {
         );
 
         res.status(200).json({
+            success: true,
             message: "Skill updated successfully",
             data: skill
         });
-
     } catch (error) {
-        console.error("Update skill error:", error);
-
-        res.status(error.statusCode || 500).json({
-            message: error.message
-        });
+        next(error);
     }
 };
 
-
-// DELETE SKILL
-const deleteSkill = async (req, res) => {
+const deleteSkill = async (req, res, next) => {
     try {
         await skillService.deleteSkill(req.params.id);
 
         res.status(200).json({
+            success: true,
             message: "Skill deleted successfully"
         });
-
     } catch (error) {
-        console.error("Delete skill error:", error);
-
-        res.status(error.statusCode || 500).json({
-            message: error.message
-        });
+        next(error);
     }
 };
-
 
 module.exports = {
     createSkill,
