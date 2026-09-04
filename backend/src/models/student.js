@@ -42,6 +42,18 @@ const studentSchema = new mongoose.Schema(
         projects: {
             type: [String],
             default: []
+        },
+
+        instituteId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Institute",
+            default: null
+        },
+
+        status: {
+            type: String,
+            enum: ["active", "inactive"],
+            default: "active"
         }
     },
     {
