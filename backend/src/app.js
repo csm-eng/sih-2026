@@ -7,6 +7,7 @@ const skillProfileRoutes = require("./modules/skills/skillProfile.routes");
 const skillEvidenceRoutes = require("./modules/skills/skillEvidence.routes");
 const skillDemandRoutes = require("./modules/skills/skillDemand.routes");
 const skillGapRoutes = require("./modules/skills/skillGap.routes");
+const recommendationRoutes = require("./modules/recommendations/recommendation.routes");
 const instituteRoutes = require("./modules/institute/institute.routes");
 
 const errorMiddleware = require("./middleware/errorMiddleware");
@@ -31,6 +32,8 @@ app.use("/api/skill-profiles", skillProfileRoutes);
 app.use("/api/skill-evidence", skillEvidenceRoutes);
 app.use("/api/skill-demand", skillDemandRoutes);
 app.use("/api/skill-gaps", skillGapRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+
 app.use("/api/institute", instituteRoutes);
 
 // Root route
