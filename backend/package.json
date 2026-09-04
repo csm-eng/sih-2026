@@ -1,0 +1,15 @@
+{
+  "name": "career-platform-backend",
+  "version": "1.0.0",
+  "description": "Academia Industry Career Platform Backend",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "mongoose": "^8.18.0"
+  }
+}
