@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-
+import StudentDashboard from '../pages/student/StudentDashboard';
 // Auth Pages
 import AuthLayout from '../components/layout/AuthLayout';
 import Login from '../pages/auth/Login';
@@ -9,7 +9,7 @@ import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
 // Dummy components for Phase 1
-const StudentDashboard = () => <div>Student Dashboard</div>;
+
 const InstituteDashboard = () => <div>Institute Dashboard</div>;
 const IndustryDashboard = () => <div>Industry Dashboard</div>;
 const Unauthorized = () => <div>Unauthorized</div>;

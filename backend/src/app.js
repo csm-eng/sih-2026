@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 
 const authRoutes = require("./modules/auth/auth.routes");
 const studentRoutes = require("./modules/student/student.routes");
@@ -16,15 +17,25 @@ const applicationRoutes = require("./modules/application/application.routes");
 const roadmapRoutes = require("./modules/roadmap/roadmap.routes");
 const facultyRoutes = require("./modules/faculty/faculty.routes");
 const mentorshipRoutes = require("./modules/mentorship/mentorship.routes");
-const errorMiddleware = require("./middleware/errorMiddleware");
 const analyticsRoutes = require("./modules/analytics/analytics.routes");
+
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
 
 // Middleware
+
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true
+    })
+);
+
 app.use(express.json());
 
 // Test route
+
 app.get("/api/test", (req, res) => {
     res.json({
         message: "Server is receiving requests"
@@ -32,6 +43,7 @@ app.get("/api/test", (req, res) => {
 });
 
 // API routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/skills", skillRoutes);
@@ -49,7 +61,9 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/institute", instituteRoutes);
 app.use("/api/mentorships", mentorshipRoutes);
 app.use("/api/analytics", analyticsRoutes);
+
 // Root route
+
 app.get("/", (req, res) => {
     res.json({
         message: "Career Platform API is running"
@@ -57,6 +71,7 @@ app.get("/", (req, res) => {
 });
 
 // 404 handler
+
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -65,6 +80,7 @@ app.use((req, res) => {
 });
 
 // Error handler
+
 app.use(errorMiddleware);
 
 module.exports = app;

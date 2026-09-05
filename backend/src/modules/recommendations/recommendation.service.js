@@ -273,17 +273,33 @@ const generateRecommendation = async (studentId, skillId, user) => {
         };
     }
 
+    // Check whether a recommendation already exists
+    const existingRecommendation = await Recommendation.findOne({
+        studentId,
+        skillId
+    })
+        .populate("studentId", "name email department year")
+        .populate("skillId", "name category description");
+
+    if (existingRecommendation) {
+        return existingRecommendation;
+    }
+
     let type;
     let title;
     let description;
 
     if (skillGap.gap >= 2) {
         type = "course";
+
         title = `Improve ${skillGap.skillId.name} through structured learning`;
+
         description = `Complete a structured course to improve ${skillGap.skillId.name} from level ${skillGap.currentLevel} to level ${skillGap.requiredLevel}.`;
     } else {
         type = "project";
+
         title = `Build a project using ${skillGap.skillId.name}`;
+
         description = `Build a practical project to strengthen your ${skillGap.skillId.name} skills.`;
     }
 
@@ -364,7 +380,9 @@ const deleteRecommendation = async (id, user) => {
     validateId(id, "recommendation ID");
 
     if (user.role !== "admin") {
-        const error = new Error("Only admin can delete recommendations");
+        const error = new Error(
+            "Only admin can delete recommendations"
+        );
         error.statusCode = 403;
         throw error;
     }

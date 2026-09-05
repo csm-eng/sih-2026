@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
+import './Login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,145 +10,214 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email || !password) {
       setError('Please enter both email and password');
       return;
     }
 
     setIsSubmitting(true);
+
     const result = await login(email, password);
+
     setIsSubmitting(false);
 
     if (result.success) {
-      if (result.role === 'student') navigate('/student/dashboard');
-      else if (result.role === 'institute') navigate('/institute/dashboard');
-      else if (result.role === 'company') navigate('/industry/dashboard');
-      else navigate('/');
+      if (result.role === 'student') {
+        navigate('/student/dashboard');
+      } else if (result.role === 'institute') {
+        navigate('/institute/dashboard');
+      } else if (result.role === 'company') {
+        navigate('/industry/dashboard');
+      } else if (result.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/unauthorized');
+      }
     } else {
       setError(result.message);
     }
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h3 className="text-xl font-medium text-gray-900 text-center">Sign in to your account</h3>
-      </div>
-      
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-          {error}
-        </div>
-      )}
+    <div className="login-page">
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="email">
-            Email address
-          </label>
-          <div className="mt-1">
-            <input
-              id="email"
-              type="email"
-              required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
+      {/* LEFT HERO */}
+      <section className="login-hero">
+        <div className="hero-glow hero-glow-one" />
+        <div className="hero-glow hero-glow-two" />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700" htmlFor="password">
-            Password
-          </label>
-          <div className="mt-1 relative">
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isSubmitting}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
+        <div className="hero-content">
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              disabled={isSubmitting}
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-              Remember me
-            </label>
+          <div className="hero-brand">
+            <div className="brand-mark">S</div>
+            <span>SmartHire Hub</span>
           </div>
 
-          <div className="text-sm">
-            <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-              Forgot your password?
-            </Link>
+          <div className="hero-badge">
+            <Sparkles size={15} />
+            <span>AI-powered career intelligence</span>
           </div>
-        </div>
 
-        <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" />
-                Signing in...
-              </>
-            ) : (
-              'Sign in'
+          <h1>
+            Turn your
+            <span> skills </span>
+            into your
+            <span> future.</span>
+          </h1>
+
+          <p>
+            Connect your skills, learning journey and opportunities
+            with the right career path.
+          </p>
+
+          <div className="hero-stats">
+            <div>
+              <strong>Skills</strong>
+              <span>Build your profile</span>
+            </div>
+
+            <div>
+              <strong>Opportunities</strong>
+              <span>Find your path</span>
+            </div>
+
+            <div>
+              <strong>Industry</strong>
+              <span>Connect directly</span>
+            </div>
+          </div>
+
+          <div className="hero-decoration">
+            <div className="floating-card card-one">
+              <span className="dot" />
+              Skill Match
+              <strong>92%</strong>
+            </div>
+
+            <div className="floating-card card-two">
+              <span className="dot" />
+              Career Growth
+              <strong>↑ 24%</strong>
+            </div>
+
+            <div className="hero-orbit orbit-one" />
+            <div className="hero-orbit orbit-two" />
+          </div>
+
+        </div>
+      </section>
+
+      {/* RIGHT LOGIN */}
+      <section className="login-panel">
+        <div className="login-card">
+
+          <div className="mobile-brand">
+            <div className="brand-mark">S</div>
+            <span>SmartHire Hub</span>
+          </div>
+
+          <div className="login-header">
+            <span className="login-label">WELCOME BACK</span>
+
+            <h2>Sign in to your account</h2>
+
+            <p>
+              Continue your journey towards the right career.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+
+            <div className="form-group">
+              <label htmlFor="email">Email address</label>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="form-group">
+              <div className="password-label">
+                <label htmlFor="password">Password</label>
+
+                <Link to="/forgot-password">
+                  Forgot password?
+                </Link>
+              </div>
+
+              <div className="password-input">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={
+                    showPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={19} />
+                  ) : (
+                    <Eye size={19} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="login-error">
+                {error}
+              </div>
             )}
-          </button>
-        </div>
-      </form>
 
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
-          </div>
-        </div>
+            <button
+              type="submit"
+              className="login-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                'Signing in...'
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </button>
 
-        <div className="mt-6">
-          <Link
-            to="/register"
-            className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Register
-          </Link>
+          </form>
+
+          <div className="register-prompt">
+            Don't have an account?
+            <Link to="/register">Create account</Link>
+          </div>
+
         </div>
-      </div>
+      </section>
+
     </div>
   );
 };

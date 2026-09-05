@@ -62,10 +62,17 @@ const recommendationSchema = new mongoose.Schema(
             default: false
         }
     },
-    { timestamps: true }
+    {
+        timestamps: true
+    }
 );
 
-recommendationSchema.index({ studentId: 1, skillId: 1 });
+// Prevent duplicate recommendations
+// for the same student and skill
+recommendationSchema.index(
+    { studentId: 1, skillId: 1 },
+    { unique: true }
+);
 
 module.exports = mongoose.model(
     "Recommendation",
