@@ -29,14 +29,19 @@ const verifyFacultyAccess = async (facultyId, user) => {
         throw error;
     }
 
+    // Admin can access faculty from any institute
     if (user.role === "admin") {
         return faculty;
     }
 
+    // Institute can access only faculty belonging to its institute
     if (user.role === "institute") {
         verifyInstitute(user);
 
-        if (faculty.instituteId.toString() !== user.instituteId.toString()) {
+        if (
+            faculty.instituteId.toString() !==
+            user.instituteId.toString()
+        ) {
             const error = new Error("Access denied");
             error.statusCode = 403;
             throw error;
@@ -53,13 +58,18 @@ const verifyFacultyAccess = async (facultyId, user) => {
 // ---------- FACULTY ----------
 
 const createFaculty = async (data, user) => {
+    // Only admin and institute users can create faculty profiles
     if (user.role !== "admin" && user.role !== "institute") {
         const error = new Error("Access denied");
         error.statusCode = 403;
         throw error;
     }
 
-    verifyInstitute(user);
+    // Only institute users need to have an institute linked
+    // Admin can create faculty for any institute
+    if (user.role === "institute") {
+        verifyInstitute(user);
+    }
 
     validateId(data.userId, "user ID");
 
@@ -71,6 +81,7 @@ const createFaculty = async (data, user) => {
         throw error;
     }
 
+    // Faculty accounts must use the institute role
     if (facultyUser.role !== "institute") {
         const error = new Error(
             "Faculty user must have institute role"
@@ -79,6 +90,7 @@ const createFaculty = async (data, user) => {
         throw error;
     }
 
+    // Faculty user must belong to an institute
     if (!facultyUser.instituteId) {
         const error = new Error(
             "Faculty user is not linked to an institute"
@@ -87,15 +99,20 @@ const createFaculty = async (data, user) => {
         throw error;
     }
 
+    // Institute users can create faculty only within their own institute
     if (
         user.role === "institute" &&
-        facultyUser.instituteId.toString() !== user.instituteId.toString()
+        facultyUser.instituteId.toString() !==
+            user.instituteId.toString()
     ) {
-        const error = new Error("Faculty user belongs to another institute");
+        const error = new Error(
+            "Faculty user belongs to another institute"
+        );
         error.statusCode = 403;
         throw error;
     }
 
+    // Prevent duplicate faculty profiles
     const existingFaculty = await Faculty.findOne({
         userId: data.userId
     });
@@ -106,6 +123,8 @@ const createFaculty = async (data, user) => {
         throw error;
     }
 
+    // Always derive instituteId from the faculty user's account
+    // instead of trusting the request body.
     const faculty = await Faculty.create({
         ...data,
         instituteId: facultyUser.instituteId
@@ -115,12 +134,14 @@ const createFaculty = async (data, user) => {
 };
 
 const getFaculties = async (user) => {
+    // Admin can view faculty from all institutes
     if (user.role === "admin") {
         return await Faculty.find()
             .populate("userId", "name email role")
             .populate("instituteId", "name");
     }
 
+    // Institute can view only faculty from its own institute
     if (user.role === "institute") {
         verifyInstitute(user);
 
