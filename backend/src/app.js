@@ -9,7 +9,9 @@ const skillDemandRoutes = require("./modules/skills/skillDemand.routes");
 const skillGapRoutes = require("./modules/skills/skillGap.routes");
 const recommendationRoutes = require("./modules/recommendations/recommendation.routes");
 const instituteRoutes = require("./modules/institute/institute.routes");
-
+const companyRoutes = require("./modules/company/company.routes");
+const opportunityRoutes = require("./modules/opportunity/opportunity.routes");
+const shortlistRoutes = require("./modules/shortlist/shortlist.routes");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -33,7 +35,9 @@ app.use("/api/skill-evidence", skillEvidenceRoutes);
 app.use("/api/skill-demand", skillDemandRoutes);
 app.use("/api/skill-gaps", skillGapRoutes);
 app.use("/api/recommendations", recommendationRoutes);
-
+app.use("/api/companies", companyRoutes);
+app.use("/api/opportunities", opportunityRoutes);
+app.use("/api/shortlists", shortlistRoutes);
 app.use("/api/institute", instituteRoutes);
 
 // Root route
