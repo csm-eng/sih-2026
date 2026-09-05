@@ -1,5 +1,6 @@
 const express = require("express");
-
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
 const {
     createApplication,
     getApplications,
@@ -22,7 +23,12 @@ router.get("/opportunity/:opportunityId", getOpportunityApplications);
 
 router.get("/:id", getApplicationById);
 
-router.patch("/:id/status", updateApplicationStatus);
+router.patch(
+    "/:id/status",
+    authMiddleware,
+    roleMiddleware("company"),
+    updateApplicationStatus
+);
 
 router.delete("/:id", deleteApplication);
 

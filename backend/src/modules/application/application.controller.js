@@ -64,7 +64,8 @@ const getOpportunityApplications = async (req, res, next) => {
     try {
         const applications =
             await applicationService.getOpportunityApplications(
-                req.params.opportunityId
+                req.params.opportunityId,
+                req.user.companyId
             );
 
         res.status(200).json({
@@ -82,7 +83,8 @@ const updateApplicationStatus = async (req, res, next) => {
         const application =
             await applicationService.updateApplicationStatus(
                 req.params.id,
-                req.body.status
+                req.body.status,
+                req.user.companyId
             );
 
         res.status(200).json({

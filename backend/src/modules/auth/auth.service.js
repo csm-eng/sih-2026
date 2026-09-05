@@ -11,7 +11,10 @@ const login = async (email, password) => {
         throw error;
     }
 
-    const passwordMatch = await comparePassword(password, user.password);
+    const passwordMatch = await comparePassword(
+        password,
+        user.password
+    );
 
     if (!passwordMatch) {
         const error = new Error("Invalid email or password");
@@ -28,7 +31,8 @@ const login = async (email, password) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            instituteId: user.instituteId
+            instituteId: user.instituteId,
+            companyId: user.companyId
         }
     };
 };

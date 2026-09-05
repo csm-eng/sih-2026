@@ -12,7 +12,28 @@ const validateId = (id, fieldName) => {
         throw error;
     }
 };
+const verifyCompanyOpportunity = async (opportunityId, companyId) => {
+    validateId(opportunityId, "opportunity ID");
+    validateId(companyId, "company ID");
 
+    const opportunity = await Opportunity.findById(opportunityId);
+
+    if (!opportunity) {
+        const error = new Error("Opportunity not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (opportunity.companyId.toString() !== companyId.toString()) {
+        const error = new Error(
+            "You are not authorized to access this opportunity"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    return opportunity;
+};
 // Create application
 const createApplication = async (data) => {
     validateId(data.studentId, "student ID");
@@ -148,28 +169,27 @@ const getStudentApplications = async (studentId) => {
 };
 
 // Get applications for an opportunity
-const getOpportunityApplications = async (opportunityId) => {
-    validateId(opportunityId, "opportunity ID");
+const getOpportunityApplications = async (opportunityId, companyId) => {
+    const opportunity = await verifyCompanyOpportunity(
+        opportunityId,
+        companyId
+    );
 
-    const opportunity = await Opportunity.findById(opportunityId);
-
-    if (!opportunity) {
-        const error = new Error("Opportunity not found");
-        error.statusCode = 404;
-        throw error;
-    }
-
-    return await Application.find({ opportunityId })
+    return await Application.find({ opportunityId: opportunity._id })
         .populate(
             "studentId",
             "name email department year"
         )
-        .sort({ appliedAt: -1 });
+        .populate(
+            "opportunityId",
+            "title type companyId location mode requiredSkills"
+        )
+        .sort({ matchScore: -1, appliedAt: -1 });
 };
-
 // Update application status
-const updateApplicationStatus = async (id, status) => {
+const updateApplicationStatus = async (id, status, companyId) => {
     validateId(id, "application ID");
+    validateId(companyId, "company ID");
 
     const allowedStatuses = [
         "applied",
@@ -185,17 +205,41 @@ const updateApplicationStatus = async (id, status) => {
         throw error;
     }
 
-    const application = await Application.findByIdAndUpdate(
-        id,
-        {
-            status,
-            reviewedAt: new Date()
-        },
-        {
-            new: true,
-            runValidators: true
-        }
-    )
+    const application = await Application.findById(id);
+
+    if (!application) {
+        const error = new Error("Application not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const opportunity = await Opportunity.findById(
+        application.opportunityId
+    );
+
+    if (!opportunity) {
+        const error = new Error("Opportunity not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (
+        opportunity.companyId.toString() !==
+        companyId.toString()
+    ) {
+        const error = new Error(
+            "You are not authorized to update this application"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    application.status = status;
+    application.reviewedAt = new Date();
+
+    await application.save();
+
+    return await Application.findById(application._id)
         .populate(
             "studentId",
             "name email department year"
@@ -204,14 +248,6 @@ const updateApplicationStatus = async (id, status) => {
             "opportunityId",
             "title type companyId location mode"
         );
-
-    if (!application) {
-        const error = new Error("Application not found");
-        error.statusCode = 404;
-        throw error;
-    }
-
-    return application;
 };
 
 // Delete application
