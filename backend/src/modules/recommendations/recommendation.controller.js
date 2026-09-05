@@ -3,7 +3,10 @@ const recommendationService = require("./recommendation.service");
 const createRecommendation = async (req, res, next) => {
     try {
         const recommendation =
-            await recommendationService.createRecommendation(req.body);
+            await recommendationService.createRecommendation(
+                req.body,
+                req.user
+            );
 
         res.status(201).json({
             success: true,
@@ -18,7 +21,9 @@ const createRecommendation = async (req, res, next) => {
 const getRecommendations = async (req, res, next) => {
     try {
         const recommendations =
-            await recommendationService.getAllRecommendations();
+            await recommendationService.getAllRecommendations(
+                req.user
+            );
 
         res.status(200).json({
             success: true,
@@ -34,7 +39,8 @@ const getRecommendationById = async (req, res, next) => {
     try {
         const recommendation =
             await recommendationService.getRecommendationById(
-                req.params.id
+                req.params.id,
+                req.user
             );
 
         res.status(200).json({
@@ -51,7 +57,8 @@ const getStudentRecommendations = async (req, res, next) => {
     try {
         const recommendations =
             await recommendationService.getStudentRecommendations(
-                req.params.studentId
+                req.params.studentId,
+                req.user
             );
 
         res.status(200).json({
@@ -69,7 +76,8 @@ const generateRecommendation = async (req, res, next) => {
         const recommendation =
             await recommendationService.generateRecommendation(
                 req.params.studentId,
-                req.params.skillId
+                req.params.skillId,
+                req.user
             );
 
         res.status(200).json({
@@ -87,7 +95,8 @@ const updateRecommendation = async (req, res, next) => {
         const recommendation =
             await recommendationService.updateRecommendation(
                 req.params.id,
-                req.body
+                req.body,
+                req.user
             );
 
         res.status(200).json({
@@ -103,7 +112,8 @@ const updateRecommendation = async (req, res, next) => {
 const deleteRecommendation = async (req, res, next) => {
     try {
         await recommendationService.deleteRecommendation(
-            req.params.id
+            req.params.id,
+            req.user
         );
 
         res.status(200).json({

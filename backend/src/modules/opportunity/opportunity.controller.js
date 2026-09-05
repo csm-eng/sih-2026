@@ -1,9 +1,20 @@
-const opportunityService = require("./opportunity.service");
+const {
+    createOpportunity,
+    getAllOpportunities,
+    getOpenOpportunities,
+    getOpportunityById,
+    getCompanyOpportunities,
+    updateOpportunity,
+    deleteOpportunity
+} = require("./opportunity.service");
 
-const createOpportunity = async (req, res, next) => {
+// Create opportunity
+const createOpportunityController = async (req, res, next) => {
     try {
-        const opportunity =
-            await opportunityService.createOpportunity(req.body);
+        const opportunity = await createOpportunity({
+            ...req.body,
+            companyId: req.user.companyId
+        });
 
         res.status(201).json({
             success: true,
@@ -14,15 +25,14 @@ const createOpportunity = async (req, res, next) => {
         next(error);
     }
 };
-
+// Get all opportunities
 const getOpportunities = async (req, res, next) => {
     try {
-        const opportunities =
-            await opportunityService.getAllOpportunities();
+        const opportunities = await getAllOpportunities();
 
         res.status(200).json({
             success: true,
-            message: "Opportunities fetched successfully",
+            count: opportunities.length,
             data: opportunities
         });
     } catch (error) {
@@ -30,16 +40,30 @@ const getOpportunities = async (req, res, next) => {
     }
 };
 
-const getOpportunityById = async (req, res, next) => {
+// Get open opportunities for students
+const getOpenOpportunitiesController = async (req, res, next) => {
     try {
-        const opportunity =
-            await opportunityService.getOpportunityById(
-                req.params.id
-            );
+        const opportunities = await getOpenOpportunities(
+            req.user.studentId
+        );
 
         res.status(200).json({
             success: true,
-            message: "Opportunity fetched successfully",
+            count: opportunities.length,
+            data: opportunities
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get opportunity by ID
+const getOpportunity = async (req, res, next) => {
+    try {
+        const opportunity = await getOpportunityById(req.params.id);
+
+        res.status(200).json({
+            success: true,
             data: opportunity
         });
     } catch (error) {
@@ -47,16 +71,17 @@ const getOpportunityById = async (req, res, next) => {
     }
 };
 
-const getCompanyOpportunities = async (req, res, next) => {
+// Get opportunities of a company
+const getCompanyOpportunityList = async (req, res, next) => {
     try {
-        const opportunities =
-            await opportunityService.getCompanyOpportunities(
-                req.params.companyId
-            );
+        const opportunities = await getCompanyOpportunities(
+            req.params.companyId,
+            req.user.companyId
+        );
 
         res.status(200).json({
             success: true,
-            message: "Company opportunities fetched successfully",
+            count: opportunities.length,
             data: opportunities
         });
     } catch (error) {
@@ -64,13 +89,14 @@ const getCompanyOpportunities = async (req, res, next) => {
     }
 };
 
-const updateOpportunity = async (req, res, next) => {
+// Update opportunity
+const updateOpportunityController = async (req, res, next) => {
     try {
-        const opportunity =
-            await opportunityService.updateOpportunity(
-                req.params.id,
-                req.body
-            );
+        const opportunity = await updateOpportunity(
+            req.params.id,
+            req.body,
+            req.user.companyId
+        );
 
         res.status(200).json({
             success: true,
@@ -82,10 +108,12 @@ const updateOpportunity = async (req, res, next) => {
     }
 };
 
-const deleteOpportunity = async (req, res, next) => {
+// Delete opportunity
+const deleteOpportunityController = async (req, res, next) => {
     try {
-        await opportunityService.deleteOpportunity(
-            req.params.id
+        await deleteOpportunity(
+            req.params.id,
+            req.user.companyId
         );
 
         res.status(200).json({
@@ -98,10 +126,11 @@ const deleteOpportunity = async (req, res, next) => {
 };
 
 module.exports = {
-    createOpportunity,
+    createOpportunityController,
     getOpportunities,
-    getOpportunityById,
-    getCompanyOpportunities,
-    updateOpportunity,
-    deleteOpportunity
+    getOpenOpportunitiesController,
+    getOpportunity,
+    getCompanyOpportunityList,
+    updateOpportunityController,
+    deleteOpportunityController
 };

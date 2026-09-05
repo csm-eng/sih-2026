@@ -37,7 +37,13 @@ const userSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Company",
             default: null
+        },
+        studentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Student",
+            default: null
         }
+
     },
     { timestamps: true }
 );

@@ -4,7 +4,8 @@ const calculateMatch = async (req, res, next) => {
     try {
         const result = await shortlistService.calculateMatch(
             req.params.studentId,
-            req.params.opportunityId
+            req.params.opportunityId,
+            req.user
         );
 
         res.status(200).json({
@@ -20,7 +21,8 @@ const calculateMatch = async (req, res, next) => {
 const getStudentMatches = async (req, res, next) => {
     try {
         const matches = await shortlistService.getStudentMatches(
-            req.params.studentId
+            req.params.studentId,
+            req.user
         );
 
         res.status(200).json({
@@ -35,13 +37,15 @@ const getStudentMatches = async (req, res, next) => {
 
 const getOpportunityMatches = async (req, res, next) => {
     try {
-        const matches = await shortlistService.getOpportunityMatches(
-            req.params.opportunityId
-        );
+        const matches =
+            await shortlistService.getOpportunityMatches(
+                req.params.opportunityId,
+                req.user
+            );
 
         res.status(200).json({
             success: true,
-            message: "Opportunity student matches fetched successfully",
+            message: "Opportunity matches fetched successfully",
             data: matches
         });
     } catch (error) {

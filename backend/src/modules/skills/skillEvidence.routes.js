@@ -9,19 +9,57 @@ const {
     deleteSkillEvidence
 } = require("./skillEvidence.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
-router.post("/", createSkillEvidence);
+// Create evidence
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    createSkillEvidence
+);
 
-router.get("/", getSkillEvidence);
+// Get evidence
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillEvidence
+);
 
-// Specific route MUST come before /:id
-router.get("/student/:studentId", getStudentSkillEvidence);
+// Get evidence for a particular student
+router.get(
+    "/student/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getStudentSkillEvidence
+);
 
-router.get("/:id", getSkillEvidenceById);
+// Get one evidence record
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillEvidenceById
+);
 
-router.put("/:id", updateSkillEvidence);
+// Update evidence
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    updateSkillEvidence
+);
 
-router.delete("/:id", deleteSkillEvidence);
+// Delete evidence
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    deleteSkillEvidence
+);
 
 module.exports = router;

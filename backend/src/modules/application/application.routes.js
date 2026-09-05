@@ -1,6 +1,8 @@
 const express = require("express");
+
 const authMiddleware = require("../../middleware/authMiddleware");
 const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const {
     createApplication,
     getApplications,
@@ -13,16 +15,47 @@ const {
 
 const router = express.Router();
 
-router.post("/", createApplication);
+// Student submits application
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("student"),
+    createApplication
+);
 
-router.get("/", getApplications);
+// Admin views all applications
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("admin"),
+    getApplications
+);
 
-router.get("/student/:studentId", getStudentApplications);
+// Student views own applications
+router.get(
+    "/student/:studentId",
+    authMiddleware,
+    roleMiddleware("student"),
+    getStudentApplications
+);
 
-router.get("/opportunity/:opportunityId", getOpportunityApplications);
+// Company views applications for its own opportunity
+router.get(
+    "/opportunity/:opportunityId",
+    authMiddleware,
+    roleMiddleware("company"),
+    getOpportunityApplications
+);
 
-router.get("/:id", getApplicationById);
+// Student/company/admin can view an application,
+// with ownership enforced by the service
+router.get(
+    "/:id",
+    authMiddleware,
+    getApplicationById
+);
 
+// Company updates status of applications for its own opportunity
 router.patch(
     "/:id/status",
     authMiddleware,
@@ -30,6 +63,11 @@ router.patch(
     updateApplicationStatus
 );
 
-router.delete("/:id", deleteApplication);
+// Student can delete own application; admin can delete any
+router.delete(
+    "/:id",
+    authMiddleware,
+    deleteApplication
+);
 
 module.exports = router;

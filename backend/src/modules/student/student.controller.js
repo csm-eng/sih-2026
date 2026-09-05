@@ -1,6 +1,5 @@
 const studentService = require("./student.service");
 
-
 // CREATE STUDENT
 const createStudent = async (req, res) => {
     try {
@@ -9,6 +8,7 @@ const createStudent = async (req, res) => {
         const student = await studentService.createStudent(req.body);
 
         res.status(201).json({
+            success: true,
             message: "Student created successfully",
             data: student
         });
@@ -18,11 +18,13 @@ const createStudent = async (req, res) => {
 
         if (error.code === 11000) {
             return res.status(400).json({
+                success: false,
                 message: "Email already exists"
             });
         }
 
         res.status(error.statusCode || 500).json({
+            success: false,
             message: error.message
         });
     }
@@ -32,9 +34,11 @@ const createStudent = async (req, res) => {
 // GET ALL STUDENTS
 const getStudents = async (req, res) => {
     try {
-        const students = await studentService.getAllStudents();
+        const students =
+            await studentService.getAllStudents(req.user);
 
         res.status(200).json({
+            success: true,
             message: "Students fetched successfully",
             data: students
         });
@@ -42,7 +46,8 @@ const getStudents = async (req, res) => {
     } catch (error) {
         console.error("Get students error:", error);
 
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
+            success: false,
             message: error.message
         });
     }
@@ -52,11 +57,14 @@ const getStudents = async (req, res) => {
 // GET ONE STUDENT
 const getStudentById = async (req, res) => {
     try {
-        const student = await studentService.getStudentById(
-            req.params.id
-        );
+        const student =
+            await studentService.getStudentById(
+                req.params.id,
+                req.user
+            );
 
         res.status(200).json({
+            success: true,
             message: "Student fetched successfully",
             data: student
         });
@@ -65,6 +73,7 @@ const getStudentById = async (req, res) => {
         console.error("Get student error:", error);
 
         res.status(error.statusCode || 500).json({
+            success: false,
             message: error.message
         });
     }
@@ -74,12 +83,15 @@ const getStudentById = async (req, res) => {
 // UPDATE STUDENT
 const updateStudent = async (req, res) => {
     try {
-        const student = await studentService.updateStudent(
-            req.params.id,
-            req.body
-        );
+        const student =
+            await studentService.updateStudent(
+                req.params.id,
+                req.body,
+                req.user
+            );
 
         res.status(200).json({
+            success: true,
             message: "Student updated successfully",
             data: student
         });
@@ -88,6 +100,7 @@ const updateStudent = async (req, res) => {
         console.error("Update student error:", error);
 
         res.status(error.statusCode || 500).json({
+            success: false,
             message: error.message
         });
     }
@@ -97,9 +110,13 @@ const updateStudent = async (req, res) => {
 // DELETE STUDENT
 const deleteStudent = async (req, res) => {
     try {
-        await studentService.deleteStudent(req.params.id);
+        await studentService.deleteStudent(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
+            success: true,
             message: "Student deleted successfully"
         });
 
@@ -107,6 +124,7 @@ const deleteStudent = async (req, res) => {
         console.error("Delete student error:", error);
 
         res.status(error.statusCode || 500).json({
+            success: false,
             message: error.message
         });
     }

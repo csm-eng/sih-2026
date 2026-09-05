@@ -9,19 +9,57 @@ const {
     deleteSkillDemand
 } = require("./skillDemand.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
-router.post("/", createSkillDemand);
+// Admin creates skill demand records
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("admin"),
+    createSkillDemand
+);
 
-router.get("/", getSkillDemands);
+// All authenticated roles can view skill demand
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "company", "admin"),
+    getSkillDemands
+);
 
-// Specific route MUST come before /:id
-router.get("/skill/:skillId", getSkillDemandsBySkill);
+// Get demand for a particular skill
+router.get(
+    "/skill/:skillId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "company", "admin"),
+    getSkillDemandsBySkill
+);
 
-router.get("/:id", getSkillDemandById);
+// Get one skill demand
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "company", "admin"),
+    getSkillDemandById
+);
 
-router.put("/:id", updateSkillDemand);
+// Only admin can update
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    updateSkillDemand
+);
 
-router.delete("/:id", deleteSkillDemand);
+// Only admin can delete
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteSkillDemand
+);
 
 module.exports = router;

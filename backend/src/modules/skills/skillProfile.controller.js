@@ -2,7 +2,10 @@ const skillProfileService = require("./skillProfile.service");
 
 const createSkillProfile = async (req, res, next) => {
     try {
-        const profile = await skillProfileService.createSkillProfile(req.body);
+        const profile = await skillProfileService.createSkillProfile(
+            req.body,
+            req.user
+        );
 
         res.status(201).json({
             success: true,
@@ -16,7 +19,9 @@ const createSkillProfile = async (req, res, next) => {
 
 const getSkillProfiles = async (req, res, next) => {
     try {
-        const profiles = await skillProfileService.getAllSkillProfiles();
+        const profiles = await skillProfileService.getAllSkillProfiles(
+            req.user
+        );
 
         res.status(200).json({
             success: true,
@@ -31,7 +36,8 @@ const getSkillProfiles = async (req, res, next) => {
 const getSkillProfileById = async (req, res, next) => {
     try {
         const profile = await skillProfileService.getSkillProfileById(
-            req.params.id
+            req.params.id,
+            req.user
         );
 
         res.status(200).json({
@@ -48,7 +54,8 @@ const getStudentSkillProfiles = async (req, res, next) => {
     try {
         const profiles =
             await skillProfileService.getStudentSkillProfiles(
-                req.params.studentId
+                req.params.studentId,
+                req.user
             );
 
         res.status(200).json({
@@ -65,7 +72,8 @@ const updateSkillProfile = async (req, res, next) => {
     try {
         const profile = await skillProfileService.updateSkillProfile(
             req.params.id,
-            req.body
+            req.body,
+            req.user
         );
 
         res.status(200).json({
@@ -80,7 +88,10 @@ const updateSkillProfile = async (req, res, next) => {
 
 const deleteSkillProfile = async (req, res, next) => {
     try {
-        await skillProfileService.deleteSkillProfile(req.params.id);
+        await skillProfileService.deleteSkillProfile(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
             success: true,

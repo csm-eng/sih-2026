@@ -3,7 +3,8 @@ const skillEvidenceService = require("./skillEvidence.service");
 const createSkillEvidence = async (req, res, next) => {
     try {
         const evidence = await skillEvidenceService.createSkillEvidence(
-            req.body
+            req.body,
+            req.user
         );
 
         res.status(201).json({
@@ -18,7 +19,9 @@ const createSkillEvidence = async (req, res, next) => {
 
 const getSkillEvidence = async (req, res, next) => {
     try {
-        const evidence = await skillEvidenceService.getAllSkillEvidence();
+        const evidence = await skillEvidenceService.getAllSkillEvidence(
+            req.user
+        );
 
         res.status(200).json({
             success: true,
@@ -34,7 +37,8 @@ const getSkillEvidenceById = async (req, res, next) => {
     try {
         const evidence =
             await skillEvidenceService.getSkillEvidenceById(
-                req.params.id
+                req.params.id,
+                req.user
             );
 
         res.status(200).json({
@@ -51,7 +55,8 @@ const getStudentSkillEvidence = async (req, res, next) => {
     try {
         const evidence =
             await skillEvidenceService.getStudentSkillEvidence(
-                req.params.studentId
+                req.params.studentId,
+                req.user
             );
 
         res.status(200).json({
@@ -69,7 +74,8 @@ const updateSkillEvidence = async (req, res, next) => {
         const evidence =
             await skillEvidenceService.updateSkillEvidence(
                 req.params.id,
-                req.body
+                req.body,
+                req.user
             );
 
         res.status(200).json({
@@ -84,7 +90,10 @@ const updateSkillEvidence = async (req, res, next) => {
 
 const deleteSkillEvidence = async (req, res, next) => {
     try {
-        await skillEvidenceService.deleteSkillEvidence(req.params.id);
+        await skillEvidenceService.deleteSkillEvidence(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
             success: true,

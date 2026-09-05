@@ -11,7 +11,16 @@ const validateId = (id, fieldName) => {
     }
 };
 
-const createSkillDemand = async (data) => {
+// Create skill demand
+const createSkillDemand = async (data, user) => {
+    if (user.role !== "admin") {
+        const error = new Error(
+            "Only admin can create skill demand records"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
     validateId(data.skillId, "skill ID");
 
     const skill = await Skill.findById(data.skillId);
@@ -25,12 +34,14 @@ const createSkillDemand = async (data) => {
     return await SkillDemand.create(data);
 };
 
+// Get all skill demands
 const getAllSkillDemands = async () => {
     return await SkillDemand.find()
         .populate("skillId", "name category description")
         .sort({ demandScore: -1, createdAt: -1 });
 };
 
+// Get skill demand by ID
 const getSkillDemandById = async (id) => {
     validateId(id, "skill demand ID");
 
@@ -46,6 +57,7 @@ const getSkillDemandById = async (id) => {
     return demand;
 };
 
+// Get demands for a particular skill
 const getSkillDemandsBySkill = async (skillId) => {
     validateId(skillId, "skill ID");
 
@@ -62,8 +74,20 @@ const getSkillDemandsBySkill = async (skillId) => {
         .sort({ demandScore: -1, createdAt: -1 });
 };
 
-const updateSkillDemand = async (id, data) => {
+// Update skill demand
+const updateSkillDemand = async (id, data, user) => {
+    if (user.role !== "admin") {
+        const error = new Error(
+            "Only admin can update skill demand records"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
     validateId(id, "skill demand ID");
+
+    // Prevent changing the document ID
+    delete data._id;
 
     const demand = await SkillDemand.findByIdAndUpdate(
         id,
@@ -83,7 +107,16 @@ const updateSkillDemand = async (id, data) => {
     return demand;
 };
 
-const deleteSkillDemand = async (id) => {
+// Delete skill demand
+const deleteSkillDemand = async (id, user) => {
+    if (user.role !== "admin") {
+        const error = new Error(
+            "Only admin can delete skill demand records"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
     validateId(id, "skill demand ID");
 
     const demand = await SkillDemand.findByIdAndDelete(id);

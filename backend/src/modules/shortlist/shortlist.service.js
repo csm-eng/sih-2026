@@ -13,9 +13,34 @@ const validateId = (id, fieldName) => {
     }
 };
 
-const calculateMatch = async (studentId, opportunityId) => {
+// Calculate match between a student and an opportunity
+const calculateMatch = async (
+    studentId,
+    opportunityId,
+    user
+) => {
     validateId(studentId, "student ID");
     validateId(opportunityId, "opportunity ID");
+
+    // Only students can calculate their own match
+    if (user.role !== "student") {
+        const error = new Error(
+            "Only students can calculate opportunity matches"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (
+        !user.studentId ||
+        studentId.toString() !== user.studentId.toString()
+    ) {
+        const error = new Error(
+            "You are not authorized to calculate this match"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
 
     const student = await Student.findById(studentId);
 
@@ -25,7 +50,9 @@ const calculateMatch = async (studentId, opportunityId) => {
         throw error;
     }
 
-    const opportunity = await Opportunity.findById(opportunityId);
+    const opportunity = await Opportunity.findById(
+        opportunityId
+    );
 
     if (!opportunity) {
         const error = new Error("Opportunity not found");
@@ -33,33 +60,44 @@ const calculateMatch = async (studentId, opportunityId) => {
         throw error;
     }
 
-    const studentProfiles = await SkillProfile.find({ studentId });
+    const profiles = await SkillProfile.find({
+        studentId
+    });
 
-    const profileMap = new Map();
+    const profileMap = {};
 
-    studentProfiles.forEach(profile => {
-        profileMap.set(profile.skillId.toString(), profile);
+    profiles.forEach((profile) => {
+        profileMap[profile.skillId.toString()] = profile;
     });
 
     let totalScore = 0;
-    let totalRequired = opportunity.requiredSkills.length;
 
     const matchedSkills = [];
     const missingSkills = [];
 
+    const totalRequired =
+        opportunity.requiredSkills.length;
+
     for (const requiredSkill of opportunity.requiredSkills) {
+        const skillId =
+            requiredSkill.skillId.toString();
 
-        const skillId = requiredSkill.skillId.toString();
-        const requiredLevel = requiredSkill.requiredLevel;
+        const requiredLevel =
+            requiredSkill.requiredLevel;
 
-        const profile = profileMap.get(skillId);
+        const profile = profileMap[skillId];
 
-        const studentLevel = profile ? profile.level : 0;
+        const studentLevel =
+            profile ? profile.level : 0;
 
-        const skillScore = Math.min(
-            (studentLevel / requiredLevel) * 100,
-            100
-        );
+        let skillScore = 0;
+
+        if (requiredLevel > 0) {
+            skillScore = Math.min(
+                (studentLevel / requiredLevel) * 100,
+                100
+            );
+        }
 
         totalScore += skillScore;
 
@@ -83,54 +121,164 @@ const calculateMatch = async (studentId, opportunityId) => {
             ? Math.round(totalScore / totalRequired)
             : 0;
 
-    const status =
-        matchScore >= 70
-            ? "matched"
-            : "rejected";
-
-    const shortlist = await Shortlist.findOneAndUpdate(
-        { studentId, opportunityId },
-        {
-            studentId,
-            opportunityId,
-            matchScore,
-            matchedSkills,
-            missingSkills,
-            status
-        },
-        {
-            new: true,
-            upsert: true,
-            runValidators: true,
-            setDefaultsOnInsert: true
-        }
-    )
-        .populate("studentId", "name email department year")
-        .populate("opportunityId", "title type companyId requiredSkills")
-        .populate("matchedSkills.skillId", "name category")
-        .populate("missingSkills.skillId", "name category");
+    const shortlist =
+        await Shortlist.findOneAndUpdate(
+            {
+                studentId,
+                opportunityId
+            },
+            {
+                studentId,
+                opportunityId,
+                matchScore,
+                matchedSkills,
+                missingSkills,
+                status: "matched"
+            },
+            {
+                new: true,
+                upsert: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            }
+        )
+            .populate(
+                "studentId",
+                "name email department year"
+            )
+            .populate(
+                "opportunityId",
+                "title type companyId location mode"
+            )
+            .populate(
+                "matchedSkills.skillId",
+                "name category"
+            )
+            .populate(
+                "missingSkills.skillId",
+                "name category"
+            );
 
     return shortlist;
 };
 
-const getStudentMatches = async (studentId) => {
+// Get matches for a student
+const getStudentMatches = async (
+    studentId,
+    user
+) => {
     validateId(studentId, "student ID");
 
-    return await Shortlist.find({ studentId })
-        .populate("opportunityId", "title type companyId location mode")
-        .populate("matchedSkills.skillId", "name category")
-        .populate("missingSkills.skillId", "name category")
-        .sort({ matchScore: -1 });
+    if (user.role !== "student") {
+        const error = new Error(
+            "Only students can access their opportunity matches"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (
+        !user.studentId ||
+        studentId.toString() !== user.studentId.toString()
+    ) {
+        const error = new Error(
+            "You are not authorized to access these matches"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+        const error = new Error("Student not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    return await Shortlist.find({
+        studentId
+    })
+        .populate(
+            "opportunityId",
+            "title type companyId location mode"
+        )
+        .populate(
+            "matchedSkills.skillId",
+            "name category"
+        )
+        .populate(
+            "missingSkills.skillId",
+            "name category"
+        )
+        .sort({
+            matchScore: -1
+        });
 };
 
-const getOpportunityMatches = async (opportunityId) => {
+// Get candidates for company's opportunity
+const getOpportunityMatches = async (
+    opportunityId,
+    user
+) => {
     validateId(opportunityId, "opportunity ID");
 
-    return await Shortlist.find({ opportunityId })
-        .populate("studentId", "name email department year")
-        .populate("matchedSkills.skillId", "name category")
-        .populate("missingSkills.skillId", "name category")
-        .sort({ matchScore: -1 });
+    if (user.role !== "company") {
+        const error = new Error(
+            "Only companies can access opportunity candidates"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (!user.companyId) {
+        const error = new Error(
+            "Company account is not linked to a company"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    const opportunity = await Opportunity.findById(
+        opportunityId
+    );
+
+    if (!opportunity) {
+        const error = new Error("Opportunity not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    // Company can see candidates only for its own opportunity
+    if (
+        opportunity.companyId.toString() !==
+        user.companyId.toString()
+    ) {
+        const error = new Error(
+            "You are not authorized to access these candidates"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    return await Shortlist.find({
+        opportunityId
+    })
+        .populate(
+            "studentId",
+            "name email department year"
+        )
+        .populate(
+            "matchedSkills.skillId",
+            "name category"
+        )
+        .populate(
+            "missingSkills.skillId",
+            "name category"
+        )
+        .sort({
+            matchScore: -1
+        });
 };
 
 module.exports = {

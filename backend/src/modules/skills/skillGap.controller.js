@@ -4,7 +4,8 @@ const calculateSkillGap = async (req, res, next) => {
     try {
         const skillGap = await skillGapService.calculateSkillGap(
             req.params.studentId,
-            req.params.skillId
+            req.params.skillId,
+            req.user
         );
 
         res.status(200).json({
@@ -19,7 +20,9 @@ const calculateSkillGap = async (req, res, next) => {
 
 const getSkillGaps = async (req, res, next) => {
     try {
-        const skillGaps = await skillGapService.getAllSkillGaps();
+        const skillGaps = await skillGapService.getAllSkillGaps(
+            req.user
+        );
 
         res.status(200).json({
             success: true,
@@ -34,7 +37,8 @@ const getSkillGaps = async (req, res, next) => {
 const getSkillGapById = async (req, res, next) => {
     try {
         const skillGap = await skillGapService.getSkillGapById(
-            req.params.id
+            req.params.id,
+            req.user
         );
 
         res.status(200).json({
@@ -50,7 +54,8 @@ const getSkillGapById = async (req, res, next) => {
 const getStudentSkillGaps = async (req, res, next) => {
     try {
         const skillGaps = await skillGapService.getStudentSkillGaps(
-            req.params.studentId
+            req.params.studentId,
+            req.user
         );
 
         res.status(200).json({
@@ -65,7 +70,10 @@ const getStudentSkillGaps = async (req, res, next) => {
 
 const deleteSkillGap = async (req, res, next) => {
     try {
-        await skillGapService.deleteSkillGap(req.params.id);
+        await skillGapService.deleteSkillGap(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
             success: true,

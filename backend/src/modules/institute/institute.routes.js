@@ -15,34 +15,114 @@ const {
 
 const authMiddleware = require("../../middleware/authMiddleware");
 const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
-// All institute routes require authentication
+/*
+|--------------------------------------------------------------------------
+| All Institute Routes
+|--------------------------------------------------------------------------
+| Every route requires:
+| 1. Valid JWT
+| 2. Institute role
+|--------------------------------------------------------------------------
+*/
+
 router.use(authMiddleware);
 router.use(roleMiddleware("institute"));
 
-// Institute dashboard
-router.get("/dashboard", getDashboard);
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
 
-// Students
-router.get("/students", getStudents);
-router.get("/students/:studentId", getStudentDetails);
+router.get(
+    "/dashboard",
+    getDashboard
+);
 
-// Student roadmap
-router.get("/students/:studentId/roadmap", getStudentRoadmap);
+/*
+|--------------------------------------------------------------------------
+| Students
+|--------------------------------------------------------------------------
+*/
 
-// Student performance
-router.get("/students/:studentId/performance", getStudentPerformance);
+router.get(
+    "/students",
+    getStudents
+);
 
-// Mock test results
-router.get("/students/:studentId/mock-results", getStudentMockResults);
+router.get(
+    "/students/:studentId",
+    getStudentDetails
+);
 
-// Weak areas
-router.get("/students/:studentId/weak-areas", getStudentWeakAreas);
+/*
+|--------------------------------------------------------------------------
+| Student Roadmap
+|--------------------------------------------------------------------------
+*/
 
-// Interventions
-router.post("/students/:studentId/interventions", createIntervention);
-router.get("/students/:studentId/interventions", getStudentInterventions);
+router.get(
+    "/students/:studentId/roadmap",
+    getStudentRoadmap
+);
+
+/*
+|--------------------------------------------------------------------------
+| Student Performance
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/students/:studentId/performance",
+    getStudentPerformance
+);
+
+/*
+|--------------------------------------------------------------------------
+| Student Mock Test Results
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/students/:studentId/mock-results",
+    getStudentMockResults
+);
+
+/*
+|--------------------------------------------------------------------------
+| Student Weak Areas
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/students/:studentId/weak-areas",
+    getStudentWeakAreas
+);
+
+/*
+|--------------------------------------------------------------------------
+| Student Interventions
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+    "/students/:studentId/interventions",
+    createIntervention
+);
+
+router.get(
+    "/students/:studentId/interventions",
+    getStudentInterventions
+);
+
+/*
+|--------------------------------------------------------------------------
+| Update Intervention
+|--------------------------------------------------------------------------
+*/
 
 router.patch(
     "/interventions/:interventionId",

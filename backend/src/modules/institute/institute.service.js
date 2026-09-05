@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Student = require("../../models/student");
 const MockResult = require("../../models/mockresult");
 const RoadmapProgress = require("../../models/RoadmapProgress");
@@ -5,9 +7,45 @@ const Intervention = require("../../models/interventions");
 
 /*
 |--------------------------------------------------------------------------
-| Helper
+| Validate MongoDB ObjectId
 |--------------------------------------------------------------------------
-| Makes sure the institute can only access its own students.
+*/
+
+const validateId = (id, fieldName) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        const error = new Error(`Invalid ${fieldName}`);
+        error.statusCode = 400;
+        throw error;
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Validate Institute Account
+|--------------------------------------------------------------------------
+*/
+
+const validateInstitute = (user) => {
+    if (!user || user.role !== "institute") {
+        const error = new Error("Institute access required");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (!user.instituteId) {
+        const error = new Error(
+            "Institute account is not linked to an institute"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
+
+    validateId(user.instituteId, "institute ID");
+};
+
+/*
+|--------------------------------------------------------------------------
+| Verify Student Belongs To Institute
 |--------------------------------------------------------------------------
 */
 
@@ -15,6 +53,9 @@ const verifyStudentBelongsToInstitute = async (
     instituteId,
     studentId
 ) => {
+    validateId(instituteId, "institute ID");
+    validateId(studentId, "student ID");
+
     const student = await Student.findOne({
         _id: studentId,
         instituteId: instituteId,
@@ -24,7 +65,6 @@ const verifyStudentBelongsToInstitute = async (
         const error = new Error(
             "Student not found or does not belong to this institute"
         );
-
         error.statusCode = 404;
         throw error;
     }
@@ -39,6 +79,8 @@ const verifyStudentBelongsToInstitute = async (
 */
 
 const getDashboard = async (user) => {
+    validateInstitute(user);
+
     const instituteId = user.instituteId;
 
     const students = await Student.find({
@@ -65,10 +107,10 @@ const getDashboard = async (user) => {
 */
 
 const getStudents = async (user) => {
-    const instituteId = user.instituteId;
+    validateInstitute(user);
 
     const students = await Student.find({
-        instituteId,
+        instituteId: user.instituteId,
     })
         .select("-password")
         .sort({ createdAt: -1 })
@@ -84,6 +126,8 @@ const getStudents = async (user) => {
 */
 
 const getStudentDetails = async (user, studentId) => {
+    validateInstitute(user);
+
     const student = await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
@@ -99,6 +143,8 @@ const getStudentDetails = async (user, studentId) => {
 */
 
 const getStudentRoadmap = async (user, studentId) => {
+    validateInstitute(user);
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
@@ -120,6 +166,8 @@ const getStudentRoadmap = async (user, studentId) => {
 */
 
 const getStudentPerformance = async (user, studentId) => {
+    validateInstitute(user);
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
@@ -161,7 +209,7 @@ const getStudentPerformance = async (user, studentId) => {
 
 /*
 |--------------------------------------------------------------------------
-| Get Mock Test Results
+| Get Student Mock Test Results
 |--------------------------------------------------------------------------
 */
 
@@ -169,6 +217,8 @@ const getStudentMockResults = async (
     user,
     studentId
 ) => {
+    validateInstitute(user);
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
@@ -186,7 +236,7 @@ const getStudentMockResults = async (
 
 /*
 |--------------------------------------------------------------------------
-| Get Weak Areas
+| Get Student Weak Areas
 |--------------------------------------------------------------------------
 */
 
@@ -194,6 +244,8 @@ const getStudentWeakAreas = async (
     user,
     studentId
 ) => {
+    validateInstitute(user);
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
@@ -224,7 +276,9 @@ const getStudentWeakAreas = async (
             area,
             occurrences: count,
         }))
-        .sort((a, b) => b.occurrences - a.occurrences);
+        .sort(
+            (a, b) => b.occurrences - a.occurrences
+        );
 };
 
 /*
@@ -238,17 +292,39 @@ const createIntervention = async (
     studentId,
     interventionData
 ) => {
+    validateInstitute(user);
+
+    if (
+        !interventionData ||
+        typeof interventionData !== "object"
+    ) {
+        const error = new Error(
+            "Invalid intervention data"
+        );
+        error.statusCode = 400;
+        throw error;
+    }
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
     );
 
-    const intervention = await Intervention.create({
+    /*
+    | Prevent client from controlling ownership fields.
+    */
+
+    const data = {
         ...interventionData,
         studentId,
         instituteId: user.instituteId,
         createdBy: user._id,
-    });
+    };
+
+    delete data._id;
+
+    const intervention =
+        await Intervention.create(data);
 
     return intervention;
 };
@@ -263,17 +339,20 @@ const getStudentInterventions = async (
     user,
     studentId
 ) => {
+    validateInstitute(user);
+
     await verifyStudentBelongsToInstitute(
         user.instituteId,
         studentId
     );
 
-    const interventions = await Intervention.find({
-        studentId,
-        instituteId: user.instituteId,
-    })
-        .sort({ createdAt: -1 })
-        .lean();
+    const interventions =
+        await Intervention.find({
+            studentId,
+            instituteId: user.instituteId,
+        })
+            .sort({ createdAt: -1 })
+            .lean();
 
     return interventions;
 };
@@ -289,6 +368,33 @@ const updateIntervention = async (
     interventionId,
     updateData
 ) => {
+    validateInstitute(user);
+
+    validateId(
+        interventionId,
+        "intervention ID"
+    );
+
+    if (
+        !updateData ||
+        typeof updateData !== "object"
+    ) {
+        const error = new Error(
+            "Invalid intervention data"
+        );
+        error.statusCode = 400;
+        throw error;
+    }
+
+    /*
+    | Prevent changing ownership or system fields.
+    */
+
+    delete updateData._id;
+    delete updateData.studentId;
+    delete updateData.instituteId;
+    delete updateData.createdBy;
+
     const intervention =
         await Intervention.findOneAndUpdate(
             {
@@ -306,13 +412,18 @@ const updateIntervention = async (
         const error = new Error(
             "Intervention not found"
         );
-
         error.statusCode = 404;
         throw error;
     }
 
     return intervention;
 };
+
+/*
+|--------------------------------------------------------------------------
+| Exports
+|--------------------------------------------------------------------------
+*/
 
 module.exports = {
     getDashboard,

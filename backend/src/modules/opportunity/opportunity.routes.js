@@ -1,35 +1,64 @@
 const express = require("express");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const {
-    createOpportunity,
+    createOpportunityController,
     getOpportunities,
-    getOpportunityById,
-    getCompanyOpportunities,
-    updateOpportunity,
-    deleteOpportunity
+    getOpenOpportunitiesController,
+    getOpportunity,
+    getCompanyOpportunityList,
+    updateOpportunityController,
+    deleteOpportunityController
 } = require("./opportunity.controller");
 
 const router = express.Router();
 
-// Create opportunity
-router.post("/", createOpportunity);
-
-// Get all opportunities
+// Public - get all opportunities
 router.get("/", getOpportunities);
 
-// Get opportunities by company
+// Student - get open opportunities
 router.get(
-    "/company/:companyId",
-    getCompanyOpportunities
+    "/open",
+    authMiddleware,
+    roleMiddleware("student"),
+    getOpenOpportunitiesController
 );
 
-// Get one opportunity
-router.get("/:id", getOpportunityById);
+// Company - get its own opportunities
+router.get(
+    "/company/:companyId",
+    authMiddleware,
+    roleMiddleware("company"),
+    getCompanyOpportunityList
+);
 
-// Update opportunity
-router.put("/:id", updateOpportunity);
+// Public - get opportunity by ID
+router.get("/:id", getOpportunity);
 
-// Delete opportunity
-router.delete("/:id", deleteOpportunity);
+// Company - create opportunity
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("company"),
+    createOpportunityController
+);
+
+// Company - update own opportunity
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("company"),
+    updateOpportunityController
+);
+
+// Company - delete own opportunity
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("company"),
+    deleteOpportunityController
+);
 
 module.exports = router;

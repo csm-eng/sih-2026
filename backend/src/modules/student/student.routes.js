@@ -14,6 +14,8 @@ const {
     validateStudent
 } = require("./student.validation");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
 
 // TEST ROUTE
 router.get("/test", (req, res) => {
@@ -22,46 +24,45 @@ router.get("/test", (req, res) => {
     });
 });
 
-
-// CREATE
-// POST /api/students
+// CREATE - Admin / Institute
 router.post(
     "/",
+    authMiddleware,
+    roleMiddleware("admin", "institute"),
     validateStudent,
     createStudent
 );
 
-
-// GET ALL
-// GET /api/students
+// GET ALL - Institute / Admin
 router.get(
     "/",
+    authMiddleware,
+    roleMiddleware("institute", "admin"),
     getStudents
 );
 
-
-// GET ONE
-// GET /api/students/:id
+// GET ONE - ownership handled by service
 router.get(
     "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     getStudentById
 );
 
-
-// UPDATE
-// PUT /api/students/:id
+// UPDATE - ownership handled by service
 router.put(
     "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     updateStudent
 );
 
-
-// DELETE
-// DELETE /api/students/:id
+// DELETE - Admin only
 router.delete(
     "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
     deleteStudent
 );
-
 
 module.exports = router;

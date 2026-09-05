@@ -10,26 +10,65 @@ const {
     deleteRecommendation
 } = require("./recommendation.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
+// Generate recommendation from skill gap
 router.get(
     "/generate/:studentId/:skillId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     generateRecommendation
 );
 
-router.post("/", createRecommendation);
+// Manually create recommendation
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("admin"),
+    createRecommendation
+);
 
-router.get("/", getRecommendations);
+// Get recommendations
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getRecommendations
+);
 
+// Get recommendations for a particular student
 router.get(
     "/student/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     getStudentRecommendations
 );
 
-router.get("/:id", getRecommendationById);
+// Get one recommendation
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getRecommendationById
+);
 
-router.put("/:id", updateRecommendation);
+// Update recommendation
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    updateRecommendation
+);
 
-router.delete("/:id", deleteRecommendation);
+// Delete recommendation
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteRecommendation
+);
 
 module.exports = router;

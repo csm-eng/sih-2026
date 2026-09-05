@@ -1,10 +1,19 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+
+require("dotenv").config({
+    path: path.join(__dirname, "../../.env")
+});
 
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/career-platform";
+
+const MONGO_URI =
+    process.env.MONGO_URI ||
+    "mongodb://127.0.0.1:27017/career-platform";
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports = {
     PORT,
-    MONGO_URI
+    MONGO_URI,
+    JWT_SECRET
 };

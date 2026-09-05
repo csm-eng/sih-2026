@@ -9,19 +9,57 @@ const {
     deleteSkillProfile
 } = require("./skillProfile.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
-router.post("/", createSkillProfile);
+// Create skill profile
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    createSkillProfile
+);
 
-router.get("/", getSkillProfiles);
+// Get skill profiles
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillProfiles
+);
 
-// IMPORTANT: specific route must come before /:id
-router.get("/student/:studentId", getStudentSkillProfiles);
+// Get all skill profiles of a particular student
+router.get(
+    "/student/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getStudentSkillProfiles
+);
 
-router.get("/:id", getSkillProfileById);
+// Get one skill profile
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillProfileById
+);
 
-router.put("/:id", updateSkillProfile);
+// Update skill profile
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    updateSkillProfile
+);
 
-router.delete("/:id", deleteSkillProfile);
+// Delete skill profile
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteSkillProfile
+);
 
 module.exports = router;

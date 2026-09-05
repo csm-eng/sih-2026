@@ -48,7 +48,8 @@ const updateCompany = async (req, res, next) => {
     try {
         const company = await companyService.updateCompany(
             req.params.id,
-            req.body
+            req.body,
+            req.user.companyId
         );
 
         res.status(200).json({
@@ -73,11 +74,27 @@ const deleteCompany = async (req, res, next) => {
         next(error);
     }
 };
+const getCompanyDashboard = async (req, res, next) => {
+    try {
+        const dashboard = await companyService.getCompanyDashboard(
+            req.user.companyId
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Company dashboard fetched successfully",
+            data: dashboard
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     createCompany,
     getCompanies,
     getCompanyById,
     updateCompany,
-    deleteCompany
+    deleteCompany,
+    getCompanyDashboard
 };

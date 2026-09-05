@@ -8,20 +8,53 @@ const {
     deleteSkill
 } = require("./skill.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
 router.get("/test", (req, res) => {
-    res.json({ message: "Skill routes are working" });
+    res.json({
+        message: "Skill routes are working"
+    });
 });
 
-router.post("/", createSkill);
+// Admin only
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("admin"),
+    createSkill
+);
 
-router.get("/", getSkills);
+// Authenticated users can read skills
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "company", "admin"),
+    getSkills
+);
 
-router.get("/:id", getSkillById);
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "company", "admin"),
+    getSkillById
+);
 
-router.put("/:id", updateSkill);
+// Admin only
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    updateSkill
+);
 
-router.delete("/:id", deleteSkill);
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteSkill
+);
 
 module.exports = router;

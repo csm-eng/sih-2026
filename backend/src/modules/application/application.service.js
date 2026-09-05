@@ -35,11 +35,11 @@ const verifyCompanyOpportunity = async (opportunityId, companyId) => {
     return opportunity;
 };
 // Create application
-const createApplication = async (data) => {
-    validateId(data.studentId, "student ID");
+const createApplication = async (data, loggedInStudentId) => {
+    validateId(loggedInStudentId, "student ID");
     validateId(data.opportunityId, "opportunity ID");
 
-    const student = await Student.findById(data.studentId);
+    const student = await Student.findById(loggedInStudentId);
 
     if (!student) {
         const error = new Error("Student not found");
@@ -74,7 +74,7 @@ const createApplication = async (data) => {
 
     // Prevent duplicate application
     const existingApplication = await Application.findOne({
-        studentId: data.studentId,
+        studentId: loggedInStudentId,
         opportunityId: data.opportunityId
     });
 
@@ -88,15 +88,16 @@ const createApplication = async (data) => {
 
     // Get previously calculated match score
     const shortlist = await Shortlist.findOne({
-        studentId: data.studentId,
+        studentId: loggedInStudentId,
         opportunityId: data.opportunityId
     });
 
     const matchScore = shortlist ? shortlist.matchScore : 0;
 
-    // Create application with match score
+    // Create application using authenticated student's ID
     const application = await Application.create({
         ...data,
+        studentId: loggedInStudentId,
         matchScore
     });
 
@@ -126,7 +127,7 @@ const getAllApplications = async () => {
 };
 
 // Get application by ID
-const getApplicationById = async (id) => {
+const getApplicationById = async (id, user) => {
     validateId(id, "application ID");
 
     const application = await Application.findById(id)
@@ -145,12 +146,60 @@ const getApplicationById = async (id) => {
         throw error;
     }
 
-    return application;
-};
+    // Admin can view any application
+    if (user.role === "admin") {
+        return application;
+    }
 
+    // Student can view only their own application
+    if (user.role === "student") {
+        if (
+            !user.studentId ||
+            application.studentId._id.toString() !== user.studentId.toString()
+        ) {
+            const error = new Error(
+                "You are not authorized to access this application"
+            );
+            error.statusCode = 403;
+            throw error;
+        }
+
+        return application;
+    }
+
+    // Company can view only applications for its own opportunities
+    if (user.role === "company") {
+        if (
+            !user.companyId ||
+            application.opportunityId.companyId.toString() !==
+            user.companyId.toString()
+        ) {
+            const error = new Error(
+                "You are not authorized to access this application"
+            );
+            error.statusCode = 403;
+            throw error;
+        }
+
+        return application;
+    }
+
+    const error = new Error("Access denied");
+    error.statusCode = 403;
+    throw error;
+};
 // Get applications of a student
-const getStudentApplications = async (studentId) => {
+const getStudentApplications = async (studentId, loggedInStudentId) => {
     validateId(studentId, "student ID");
+    validateId(loggedInStudentId, "student ID");
+
+    if (studentId.toString() !== loggedInStudentId.toString()) {
+        const error = new Error(
+            "You are not authorized to access these applications"
+        );
+        error.statusCode = 403;
+        throw error;
+    }
 
     const student = await Student.findById(studentId);
 
@@ -251,10 +300,10 @@ const updateApplicationStatus = async (id, status, companyId) => {
 };
 
 // Delete application
-const deleteApplication = async (id) => {
+const deleteApplication = async (id, user) => {
     validateId(id, "application ID");
 
-    const application = await Application.findByIdAndDelete(id);
+    const application = await Application.findById(id);
 
     if (!application) {
         const error = new Error("Application not found");
@@ -262,7 +311,33 @@ const deleteApplication = async (id) => {
         throw error;
     }
 
-    return application;
+    // Admin can delete any application
+    if (user.role === "admin") {
+        await Application.findByIdAndDelete(id);
+        return application;
+    }
+
+    // Student can delete only their own application
+    if (user.role === "student") {
+        if (
+            !user.studentId ||
+            application.studentId.toString() !== user.studentId.toString()
+        ) {
+            const error = new Error(
+                "You are not authorized to delete this application"
+            );
+            error.statusCode = 403;
+            throw error;
+        }
+
+        await Application.findByIdAndDelete(id);
+        return application;
+    }
+
+    // Companies cannot delete student applications
+    const error = new Error("You are not authorized to delete applications");
+    error.statusCode = 403;
+    throw error;
 };
 
 module.exports = {

@@ -1,8 +1,12 @@
 const applicationService = require("./application.service");
 
+// Create application
 const createApplication = async (req, res, next) => {
     try {
-        const application = await applicationService.createApplication(req.body);
+        const application = await applicationService.createApplication(
+            req.body,
+            req.user.studentId
+        );
 
         res.status(201).json({
             success: true,
@@ -14,9 +18,11 @@ const createApplication = async (req, res, next) => {
     }
 };
 
+// Get all applications
 const getApplications = async (req, res, next) => {
     try {
-        const applications = await applicationService.getAllApplications();
+        const applications =
+            await applicationService.getAllApplications();
 
         res.status(200).json({
             success: true,
@@ -28,11 +34,14 @@ const getApplications = async (req, res, next) => {
     }
 };
 
+// Get application by ID
 const getApplicationById = async (req, res, next) => {
     try {
-        const application = await applicationService.getApplicationById(
-            req.params.id
-        );
+        const application =
+            await applicationService.getApplicationById(
+                req.params.id,
+                req.user
+            );
 
         res.status(200).json({
             success: true,
@@ -44,11 +53,14 @@ const getApplicationById = async (req, res, next) => {
     }
 };
 
+// Get student's applications
 const getStudentApplications = async (req, res, next) => {
     try {
-        const applications = await applicationService.getStudentApplications(
-            req.params.studentId
-        );
+        const applications =
+            await applicationService.getStudentApplications(
+                req.params.studentId,
+                req.user.studentId
+            );
 
         res.status(200).json({
             success: true,
@@ -60,6 +72,7 @@ const getStudentApplications = async (req, res, next) => {
     }
 };
 
+// Get applications for company's opportunity
 const getOpportunityApplications = async (req, res, next) => {
     try {
         const applications =
@@ -78,6 +91,7 @@ const getOpportunityApplications = async (req, res, next) => {
     }
 };
 
+// Update application status
 const updateApplicationStatus = async (req, res, next) => {
     try {
         const application =
@@ -97,9 +111,13 @@ const updateApplicationStatus = async (req, res, next) => {
     }
 };
 
+// Delete application
 const deleteApplication = async (req, res, next) => {
     try {
-        await applicationService.deleteApplication(req.params.id);
+        await applicationService.deleteApplication(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
             success: true,

@@ -8,27 +8,49 @@ const {
     deleteSkillGap
 } = require("./skillGap.controller");
 
+const authMiddleware = require("../../middleware/authMiddleware");
+const roleMiddleware = require("../../middleware/roleMiddleware");
+
 const router = express.Router();
 
-// Calculate skill gap for a student and skill
-router.get(
+// Calculate a skill gap
+router.post(
     "/calculate/:studentId/:skillId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     calculateSkillGap
 );
 
-// Get all skill gaps
-router.get("/", getSkillGaps);
+// Get skill gaps
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillGaps
+);
 
-// Get skill gaps of a particular student
+// Get skill gaps for a particular student
 router.get(
     "/student/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
     getStudentSkillGaps
 );
 
-// Get a single skill gap
-router.get("/:id", getSkillGapById);
+// Get one skill gap
+router.get(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    getSkillGapById
+);
 
-// Delete a skill gap
-router.delete("/:id", deleteSkillGap);
+// Delete skill gap
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("admin"),
+    deleteSkillGap
+);
 
 module.exports = router;

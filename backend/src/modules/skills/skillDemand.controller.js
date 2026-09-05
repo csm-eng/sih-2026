@@ -2,7 +2,10 @@ const skillDemandService = require("./skillDemand.service");
 
 const createSkillDemand = async (req, res, next) => {
     try {
-        const demand = await skillDemandService.createSkillDemand(req.body);
+        const demand = await skillDemandService.createSkillDemand(
+            req.body,
+            req.user
+        );
 
         res.status(201).json({
             success: true,
@@ -64,7 +67,8 @@ const updateSkillDemand = async (req, res, next) => {
     try {
         const demand = await skillDemandService.updateSkillDemand(
             req.params.id,
-            req.body
+            req.body,
+            req.user
         );
 
         res.status(200).json({
@@ -79,7 +83,10 @@ const updateSkillDemand = async (req, res, next) => {
 
 const deleteSkillDemand = async (req, res, next) => {
     try {
-        await skillDemandService.deleteSkillDemand(req.params.id);
+        await skillDemandService.deleteSkillDemand(
+            req.params.id,
+            req.user
+        );
 
         res.status(200).json({
             success: true,
