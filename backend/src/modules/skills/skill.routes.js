@@ -13,11 +13,7 @@ const roleMiddleware = require("../../middleware/roleMiddleware");
 
 const router = express.Router();
 
-router.get("/test", (req, res) => {
-    res.json({
-        message: "Skill routes are working"
-    });
-});
+
 
 // Admin only
 router.post(
