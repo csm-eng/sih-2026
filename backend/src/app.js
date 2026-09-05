@@ -14,7 +14,10 @@ const opportunityRoutes = require("./modules/opportunity/opportunity.routes");
 const shortlistRoutes = require("./modules/shortlist/shortlist.routes");
 const applicationRoutes = require("./modules/application/application.routes");
 const roadmapRoutes = require("./modules/roadmap/roadmap.routes");
+const facultyRoutes = require("./modules/faculty/faculty.routes");
+const mentorshipRoutes = require("./modules/mentorship/mentorship.routes");
 const errorMiddleware = require("./middleware/errorMiddleware");
+const analyticsRoutes = require("./modules/analytics/analytics.routes");
 
 const app = express();
 
@@ -42,8 +45,10 @@ app.use("/api/opportunities", opportunityRoutes);
 app.use("/api/shortlists", shortlistRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
+app.use("/api/faculty", facultyRoutes);
 app.use("/api/institute", instituteRoutes);
-
+app.use("/api/mentorships", mentorshipRoutes);
+app.use("/api/analytics", analyticsRoutes);
 // Root route
 app.get("/", (req, res) => {
     res.json({
