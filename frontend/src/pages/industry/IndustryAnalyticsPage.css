@@ -1,0 +1,109 @@
+.industry-analytics-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.analytics-panels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.analytics-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.analytics-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.bar-skill-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bar-score {
+  font-weight: 600;
+  color: #64748b;
+}
+
+.progress-track {
+  height: 8px;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.progress-fill.emerald {
+  background: #10b981;
+}
+
+.progress-fill.blue {
+  background: #0284c7;
+}
+
+.gaps-grid-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gap-stat-chip {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fff5f5;
+  border: 1px solid #ffe4e6;
+}
+
+.gap-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #9f1239;
+}
+
+.gap-count {
+  font-size: 12px;
+  color: #e11d48;
+}
+
+@media (max-width: 1024px) {
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .analytics-panels-grid {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2 {
+    grid-column: span 1;
+  }
+}

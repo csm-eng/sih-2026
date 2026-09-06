@@ -1,0 +1,261 @@
+.candidates-matching-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.opp-selector-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.opp-selector-card label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.opp-dropdown {
+  flex: 1;
+  max-width: 450px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+}
+
+.opp-meta-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.verification-alert-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1e40af;
+}
+
+.icon-info {
+  flex-shrink: 0;
+  color: #2563eb;
+}
+
+/* CANDIDATE MATCH CARDS GRID */
+.candidates-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.candidate-matching-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
+}
+
+.candidate-matching-card:hover {
+  border-color: #cbd5e1;
+}
+
+.card-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.student-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.student-academic-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.dot {
+  color: #cbd5e1;
+}
+
+.cgpa-highlight {
+  color: #0284c7;
+  font-weight: 700;
+}
+
+.match-score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+
+.score-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-percent {
+  font-size: 22px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+/* EXPLAINABLE MATCHING SECTION */
+.explainable-matching-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 16px;
+}
+
+.explainable-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.column-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.text-emerald { color: #059669; }
+.text-rose { color: #e11d48; }
+
+.skills-explain-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skill-item-explain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.skill-item-explain.matched {
+  color: #0f172a;
+}
+
+.skill-item-explain.gap {
+  color: #334155;
+  background: #fff5f5;
+  border-color: #ffe4e6;
+}
+
+.check-mark {
+  color: #10b981;
+  font-weight: 800;
+}
+
+.bullet-mark {
+  color: #f43f5e;
+  font-weight: 800;
+}
+
+.skill-name {
+  font-weight: 600;
+}
+
+.skill-level {
+  color: #059669;
+  font-weight: 600;
+}
+
+.gap-detail {
+  color: #e11d48;
+  font-size: 12px;
+}
+
+.no-skill-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.card-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+}
+
+.shortlist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shortlist-btn.shortlisted {
+  background: #059669;
+}
+
+.shortlist-btn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+  .explainable-matching-container {
+    grid-template-columns: 1fr;
+  }
+}

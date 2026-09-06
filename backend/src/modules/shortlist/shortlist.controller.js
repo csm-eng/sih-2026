@@ -53,8 +53,29 @@ const getOpportunityMatches = async (req, res, next) => {
     }
 };
 
+const updateShortlistStatus = async (req, res, next) => {
+    try {
+        const { status, studentId, opportunityId } = req.body;
+        const target = req.params.id || { studentId, opportunityId };
+        const updated = await shortlistService.updateShortlistStatus(
+            target,
+            status,
+            req.user
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Shortlist status updated successfully",
+            data: updated
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     calculateMatch,
     getStudentMatches,
-    getOpportunityMatches
+    getOpportunityMatches,
+    updateShortlistStatus
 };

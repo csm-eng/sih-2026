@@ -4,6 +4,9 @@ const Student = require("../../models/student");
 const MockResult = require("../../models/mockresult");
 const RoadmapProgress = require("../../models/RoadmapProgress");
 const Intervention = require("../../models/interventions");
+const SkillProfile = require("../../models/SkillProfile");
+const SkillGap = require("../../models/SkillGap");
+const SkillDemand = require("../../models/SkillDemand");
 
 /*
 |--------------------------------------------------------------------------
@@ -93,9 +96,31 @@ const getDashboard = async (user) => {
         (student) => student.status !== "inactive"
     ).length;
 
+    const studentIds = students.map((s) => s._id);
+
+    // Verified skills count
+    const verifiedProfiles = await SkillProfile.find({
+        studentId: { $in: studentIds },
+        verified: true
+    }).distinct("studentId");
+    const studentsWithVerifiedSkills = verifiedProfiles.length;
+
+    // Critical Skill Gaps
+    const criticalGaps = await SkillGap.countDocuments({
+        studentId: { $in: studentIds },
+        priority: { $in: ["high", "critical"] }
+    });
+
+    // Industry Aligned Skills
+    const demands = await SkillDemand.find().lean();
+    const alignedCount = demands.filter(d => (d.demandScore || 0) >= 70).length;
+
     return {
         totalStudents,
         activeStudents,
+        studentsWithVerifiedSkills,
+        criticalSkillGaps: criticalGaps,
+        industryAlignedSkills: alignedCount,
         instituteId,
     };
 };

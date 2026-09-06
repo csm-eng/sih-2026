@@ -11,6 +11,8 @@ import {
   FileText,
   LogOut,
   BookOpen,
+  Check,
+  Sparkles,
 } from 'lucide-react';
 
 import { AuthContext } from '../../context/AuthContext';
@@ -23,7 +25,13 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
 
   const [student, setStudent] = useState(null);
+
+  // Verified / confirmed skills
   const [skillProfiles, setSkillProfiles] = useState([]);
+
+  // AI detected but not yet confirmed skills
+  const [skillSuggestions, setSkillSuggestions] = useState([]);
+
   const [skillGaps, setSkillGaps] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [roadmaps, setRoadmaps] = useState([]);
@@ -31,95 +39,188 @@ const StudentDashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [confirmingSkill, setConfirmingSkill] = useState(null);
+
+  /*
+   * =========================
+   * FETCH DASHBOARD DATA
+   * =========================
+   */
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (!user?.studentId) {
+        setError('Student information is not available.');
+        return;
+      }
+
+      const studentId = user.studentId;
+
+      const [
+        studentResponse,
+        verifiedSkillsResponse,
+        suggestionsResponse,
+        skillGapResponse,
+        recommendationResponse,
+        roadmapResponse,
+        progressResponse,
+      ] = await Promise.all([
+        api.get(`/students/${studentId}`),
+
+        // ONLY confirmed/verified skills
+        api.get(`/skill-profiles/student/${studentId}/verified`),
+
+        // AI detected skills waiting for confirmation
+        api.get(`/skill-profiles/student/${studentId}/suggestions`),
+
+        api.get(`/skill-gaps/student/${studentId}`),
+
+        api.get(`/recommendations/student/${studentId}`),
+
+        api.get('/roadmaps'),
+
+        api.get(`/roadmaps/progress/student/${studentId}`),
+      ]);
+
+      /*
+       * STUDENT
+       */
+
+      setStudent(
+        studentResponse.data?.data ||
+        studentResponse.data?.student ||
+        studentResponse.data
+      );
+
+      /*
+       * VERIFIED SKILLS
+       */
+
+      setSkillProfiles(
+        verifiedSkillsResponse.data?.data ||
+        verifiedSkillsResponse.data?.skillProfiles ||
+        []
+      );
+
+      /*
+       * AI SUGGESTIONS
+       */
+
+      setSkillSuggestions(
+        suggestionsResponse.data?.data ||
+        suggestionsResponse.data?.skillProfiles ||
+        []
+      );
+
+      /*
+       * SKILL GAPS
+       */
+
+      setSkillGaps(
+        skillGapResponse.data?.data ||
+        skillGapResponse.data?.skillGaps ||
+        []
+      );
+
+      /*
+       * RECOMMENDATIONS
+       */
+
+      setRecommendations(
+        recommendationResponse.data?.data ||
+        recommendationResponse.data?.recommendations ||
+        []
+      );
+
+      /*
+       * ROADMAPS
+       */
+
+      setRoadmaps(
+        roadmapResponse.data?.data ||
+        roadmapResponse.data?.roadmaps ||
+        []
+      );
+
+      /*
+       * ROADMAP PROGRESS
+       */
+
+      setRoadmapProgress(
+        progressResponse.data?.data ||
+        progressResponse.data?.progress ||
+        []
+      );
+
+    } catch (err) {
+      console.error('Dashboard error:', err);
+
+      setError(
+        err.response?.data?.message ||
+        'Unable to load dashboard data.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError('');
-
-        if (!user?.studentId) {
-          setError('Student information is not available.');
-          return;
-        }
-
-        const studentId = user.studentId;
-
-        const [
-          studentResponse,
-          skillProfileResponse,
-          skillGapResponse,
-          recommendationResponse,
-          roadmapResponse,
-          progressResponse,
-        ] = await Promise.all([
-          api.get(`/students/${studentId}`),
-          api.get(`/skill-profiles/student/${studentId}`),
-          api.get(`/skill-gaps/student/${studentId}`),
-          api.get(`/recommendations/student/${studentId}`),
-          api.get('/roadmaps'),
-          api.get(`/roadmaps/progress/student/${studentId}`),
-        ]);
-
-        setStudent(
-          studentResponse.data?.data ||
-          studentResponse.data?.student ||
-          studentResponse.data
-        );
-
-        setSkillProfiles(
-          skillProfileResponse.data?.data ||
-          skillProfileResponse.data?.skillProfiles ||
-          []
-        );
-
-        setSkillGaps(
-          skillGapResponse.data?.data ||
-          skillGapResponse.data?.skillGaps ||
-          []
-        );
-
-        setRecommendations(
-          recommendationResponse.data?.data ||
-          recommendationResponse.data?.recommendations ||
-          []
-        );
-
-        setRoadmaps(
-          roadmapResponse.data?.data ||
-          roadmapResponse.data?.roadmaps ||
-          []
-        );
-
-        setRoadmapProgress(
-          progressResponse.data?.data ||
-          progressResponse.data?.progress ||
-          []
-        );
-
-      } catch (err) {
-        console.error('Dashboard error:', err);
-
-        setError(
-          err.response?.data?.message ||
-          'Unable to load dashboard data.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, [user]);
+
+  /*
+   * =========================
+   * CONFIRM AI SKILL
+   * =========================
+   */
+
+  const handleConfirmSkill = async (skillId) => {
+    try {
+      setConfirmingSkill(skillId);
+
+      await api.post(`/skill-profiles/${skillId}/confirm`);
+
+      /*
+       * Refresh dashboard.
+       *
+       * The confirmed skill should now:
+       * - disappear from AI suggestions
+       * - appear in verified skills
+       */
+
+      await fetchDashboardData();
+
+    } catch (err) {
+      console.error('Confirm skill error:', err);
+
+      setError(
+        err.response?.data?.message ||
+        'Unable to confirm this skill.'
+      );
+    } finally {
+      setConfirmingSkill(null);
+    }
+  };
+
+  /*
+   * =========================
+   * LOGOUT
+   * =========================
+   */
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  /* =========================
-     ROADMAP DATA
-  ========================= */
+  /*
+   * =========================
+   * ROADMAP DATA
+   * =========================
+   */
 
   const activeProgress =
     roadmapProgress.length > 0
@@ -148,9 +249,11 @@ const StudentDashboard = () => {
       ? activeRoadmap?.skills || []
       : [];
 
-  /* =========================
-     HELPERS
-  ========================= */
+  /*
+   * =========================
+   * HELPERS
+   * =========================
+   */
 
   const getSkillName = (item) => {
     return (
@@ -170,6 +273,12 @@ const StudentDashboard = () => {
     );
   };
 
+  /*
+   * =========================
+   * LOADING
+   * =========================
+   */
+
   if (loading) {
     return (
       <div className="student-dashboard-loading">
@@ -178,12 +287,18 @@ const StudentDashboard = () => {
     );
   }
 
+  /*
+   * =========================
+   * UI
+   * =========================
+   */
+
   return (
     <div className="student-dashboard">
 
       {/* =========================
-                SIDEBAR
-            ========================= */}
+                  SIDEBAR
+      ========================= */}
 
       <aside className="student-sidebar">
 
@@ -205,8 +320,6 @@ const StudentDashboard = () => {
 
         <nav className="sidebar-nav">
 
-          {/* Dashboard */}
-
           <button
             className="sidebar-link active"
             onClick={() => navigate('/student/dashboard')}
@@ -215,32 +328,23 @@ const StudentDashboard = () => {
             <span>Dashboard</span>
           </button>
 
-
-          {/* Profile */}
-
-          <button className="sidebar-link">
+          <button
+            className="sidebar-link"
+            onClick={() => navigate('/student/profile')}
+          >
             <UserRound size={18} />
             <span>My Profile</span>
           </button>
-
-
-          {/* Skills */}
 
           <button className="sidebar-link">
             <Brain size={18} />
             <span>Skills</span>
           </button>
 
-
-          {/* Skill Gaps */}
-
           <button className="sidebar-link">
             <Target size={18} />
             <span>Skill Gaps</span>
           </button>
-
-
-          {/* Learning Roadmap */}
 
           <button
             className="sidebar-link"
@@ -250,16 +354,10 @@ const StudentDashboard = () => {
             <span>Learning Roadmap</span>
           </button>
 
-
-          {/* Opportunities */}
-
           <button className="sidebar-link">
             <BriefcaseBusiness size={18} />
             <span>Opportunities</span>
           </button>
-
-
-          {/* Applications */}
 
           <button className="sidebar-link">
             <FileText size={18} />
@@ -267,11 +365,6 @@ const StudentDashboard = () => {
           </button>
 
         </nav>
-
-
-        {/* =========================
-                    SIDEBAR BOTTOM
-                ========================= */}
 
         <div className="sidebar-bottom">
 
@@ -289,16 +382,13 @@ const StudentDashboard = () => {
 
       </aside>
 
-
       {/* =========================
-                MAIN
-            ========================= */}
+                  MAIN
+      ========================= */}
 
       <main className="student-main">
 
-        {/* =========================
-                    TOPBAR
-                ========================= */}
+        {/* TOPBAR */}
 
         <header className="student-topbar">
 
@@ -317,7 +407,9 @@ const StudentDashboard = () => {
             <div className="profile-info">
 
               <span className="profile-name">
-                {student?.name || user?.name || 'Student'}
+                {student?.name ||
+                  user?.name ||
+                  'Student'}
               </span>
 
               <span className="profile-role">
@@ -330,12 +422,11 @@ const StudentDashboard = () => {
 
         </header>
 
-
-        {/* =========================
-                    CONTENT
-                ========================= */}
+        {/* CONTENT */}
 
         <div className="student-content">
+
+          {/* ERROR */}
 
           {error && (
             <div
@@ -352,10 +443,7 @@ const StudentDashboard = () => {
             </div>
           )}
 
-
-          {/* =========================
-                        HEADER
-                    ========================= */}
+          {/* HEADER */}
 
           <div className="dashboard-header">
 
@@ -364,20 +452,22 @@ const StudentDashboard = () => {
             </span>
 
             <h1>
-              Welcome, {student?.name || user?.name || 'Student'}
+              Welcome,{' '}
+              {student?.name ||
+                user?.name ||
+                'Student'}
             </h1>
 
             <p>
-              Track your skills, identify gaps and prepare
-              for opportunities.
+              Track your skills, identify gaps and
+              prepare for opportunities.
             </p>
 
           </div>
 
-
           {/* =========================
-                        SUMMARY CARDS
-                    ========================= */}
+                SUMMARY CARDS
+          ========================= */}
 
           <section className="summary-grid">
 
@@ -397,7 +487,6 @@ const StudentDashboard = () => {
 
             </div>
 
-
             <div className="summary-card">
 
               <div className="summary-card-label">
@@ -416,6 +505,9 @@ const StudentDashboard = () => {
 
             </div>
 
+            {/* IMPORTANT:
+                Count ONLY verified skills
+            */}
 
             <div className="summary-card">
 
@@ -428,11 +520,10 @@ const StudentDashboard = () => {
               </div>
 
               <div className="summary-card-meta">
-                Skills in Profile
+                Verified Skills
               </div>
 
             </div>
-
 
             <div className="summary-card">
 
@@ -452,32 +543,35 @@ const StudentDashboard = () => {
 
           </section>
 
-
           {/* =========================
-                        DASHBOARD GRID
-                    ========================= */}
+                DASHBOARD GRID
+          ========================= */}
 
           <section className="dashboard-grid">
 
-
             {/* =========================
-                            YOUR SKILLS
-                        ========================= */}
+                    YOUR VERIFIED SKILLS
+            ========================= */}
 
             <div className="dashboard-card">
 
               <div className="dashboard-card-header">
 
-                <h3>
-                  Your Skills
-                </h3>
+                <div>
 
-                <span>
-                  Current skill profile
-                </span>
+                  <h3>
+                    Your Skills
+                  </h3>
+
+                  <span>
+                    Confirmed skills in your profile
+                  </span>
+
+                </div>
+
+                <Brain size={18} />
 
               </div>
-
 
               {skillProfiles.length > 0 ? (
 
@@ -491,7 +585,9 @@ const StudentDashboard = () => {
                     return (
                       <div
                         className="skill-row"
-                        key={profile?._id || index}
+                        key={
+                          profile?._id || index
+                        }
                       >
 
                         <div className="skill-row-top">
@@ -523,7 +619,15 @@ const StudentDashboard = () => {
                         <div className="skill-profile-meta">
 
                           <span>
-                            {getSkillCategory(profile)}
+                            {getSkillCategory(
+                              profile
+                            )}
+                          </span>
+
+                          <span>
+                            {profile?.verified
+                              ? 'Verified'
+                              : ''}
                           </span>
 
                         </div>
@@ -542,17 +646,176 @@ const StudentDashboard = () => {
                     fontSize: '12px',
                   }}
                 >
-                  No skills added yet.
+                  No verified skills yet.
                 </p>
 
               )}
 
             </div>
 
+            {/* =========================
+                  AI SKILL SUGGESTIONS
+            ========================= */}
+
+            <div className="dashboard-card">
+
+              <div className="dashboard-card-header">
+
+                <div>
+
+                  <h3>
+                    AI Skill Suggestions
+                  </h3>
+
+                  <span>
+                    Skills detected from your evidence
+                  </span>
+
+                </div>
+
+                <Sparkles size={18} />
+
+              </div>
+
+              {skillSuggestions.length > 0 ? (
+
+                <div className="skill-list">
+
+                  {skillSuggestions.map(
+                    (suggestion, index) => {
+
+                      const suggestionId =
+                        suggestion?._id;
+
+                      return (
+                        <div
+                          className="skill-row"
+                          key={
+                            suggestionId || index
+                          }
+                        >
+
+                          <div className="skill-row-top">
+
+                            <div>
+
+                              <span>
+                                {getSkillName(
+                                  suggestion
+                                )}
+                              </span>
+
+                              <div
+                                style={{
+                                  marginTop: '4px',
+                                  fontSize: '10px',
+                                  color: '#94a3b8',
+                                }}
+                              >
+                                AI detected
+                              </div>
+
+                            </div>
+
+                            <button
+                              onClick={() =>
+                                handleConfirmSkill(
+                                  suggestionId
+                                )
+                              }
+                              disabled={
+                                confirmingSkill ===
+                                suggestionId
+                              }
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '7px 10px',
+                                background:
+                                  confirmingSkill ===
+                                    suggestionId
+                                    ? '#cbd5e1'
+                                    : '#0284c7',
+                                color: '#ffffff',
+                                cursor:
+                                  confirmingSkill ===
+                                    suggestionId
+                                    ? 'not-allowed'
+                                    : 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                              }}
+                            >
+
+                              <Check size={13} />
+
+                              {confirmingSkill ===
+                                suggestionId
+                                ? 'Confirming...'
+                                : 'Confirm'}
+
+                            </button>
+
+                          </div>
+
+                          <div className="skill-profile-meta">
+
+                            <span>
+                              {getSkillCategory(
+                                suggestion
+                              )}
+                            </span>
+
+                            <span>
+                              Suggested Level:{' '}
+                              {suggestion?.level || 1}
+                            </span>
+
+                          </div>
+
+                        </div>
+                      );
+                    }
+                  )}
+
+                </div>
+
+              ) : (
+
+                <div>
+
+                  <p
+                    style={{
+                      color: '#94a3b8',
+                      fontSize: '12px',
+                      marginBottom: '5px',
+                    }}
+                  >
+                    No pending AI skill suggestions.
+                  </p>
+
+                  <span
+                    style={{
+                      color: '#64748b',
+                      fontSize: '10px',
+                    }}
+                  >
+                    AI detected skills will appear here
+                    after evidence is analyzed.
+                  </span>
+
+                </div>
+
+              )}
+
+            </div>
 
             {/* =========================
-                            SKILL GAPS
-                        ========================= */}
+                    SKILL GAPS
+            ========================= */}
 
             <div className="dashboard-card">
 
@@ -568,7 +831,6 @@ const StudentDashboard = () => {
 
               </div>
 
-
               {skillGaps.length > 0 ? (
 
                 <div className="skill-gap-list">
@@ -583,7 +845,9 @@ const StudentDashboard = () => {
                     return (
                       <div
                         className="skill-gap-row"
-                        key={gap?._id || index}
+                        key={
+                          gap?._id || index
+                        }
                       >
 
                         <div className="skill-gap-top">
@@ -595,7 +859,9 @@ const StudentDashboard = () => {
                             </span>
 
                             <span className="skill-gap-category">
-                              {getSkillCategory(gap)}
+                              {getSkillCategory(
+                                gap
+                              )}
                             </span>
 
                           </div>
@@ -607,7 +873,6 @@ const StudentDashboard = () => {
                           </span>
 
                         </div>
-
 
                         <div className="skill-gap-levels">
 
@@ -621,10 +886,10 @@ const StudentDashboard = () => {
                               {gap?.currentLevel ??
                                 gap?.current ??
                                 0}
+                              /5
                             </strong>
 
                           </div>
-
 
                           <div>
 
@@ -636,10 +901,10 @@ const StudentDashboard = () => {
                               {gap?.requiredLevel ??
                                 gap?.required ??
                                 0}
+                              /5
                             </strong>
 
                           </div>
-
 
                           <div>
 
@@ -655,15 +920,16 @@ const StudentDashboard = () => {
 
                           </div>
 
-
                           <div>
 
                             <span>
-                              Status
+                              Industry Demand
                             </span>
 
                             <strong>
-                              Improve
+                              {gap?.demandScore ??
+                                0}
+                              %
                             </strong>
 
                           </div>
@@ -691,10 +957,9 @@ const StudentDashboard = () => {
 
             </div>
 
-
             {/* =========================
-                            RECOMMENDATIONS
-                        ========================= */}
+                  RECOMMENDATIONS
+            ========================= */}
 
             <div className="dashboard-card recommendation-card">
 
@@ -715,7 +980,6 @@ const StudentDashboard = () => {
                 <BriefcaseBusiness size={18} />
 
               </div>
-
 
               {recommendations.length > 0 ? (
 
@@ -747,7 +1011,6 @@ const StudentDashboard = () => {
 
                             </div>
 
-
                             <div className="recommendation-content">
 
                               <div className="recommendation-heading">
@@ -765,13 +1028,11 @@ const StudentDashboard = () => {
 
                               </div>
 
-
                               <p>
                                 {recommendation?.description ||
                                   recommendation?.reason ||
                                   'Work on this recommendation to improve your profile.'}
                               </p>
-
 
                               <div className="recommendation-meta">
 
@@ -784,7 +1045,11 @@ const StudentDashboard = () => {
                                 {recommendation?.skillId?.name && (
                                   <span>
                                     Skill:{' '}
-                                    {recommendation.skillId.name}
+                                    {
+                                      recommendation
+                                        .skillId
+                                        .name
+                                    }
                                   </span>
                                 )}
 
@@ -816,10 +1081,9 @@ const StudentDashboard = () => {
 
             </div>
 
-
             {/* =========================
-                            LEARNING ROADMAP
-                        ========================= */}
+                  LEARNING ROADMAP
+            ========================= */}
 
             <div className="dashboard-card roadmap-card">
 
@@ -840,7 +1104,6 @@ const StudentDashboard = () => {
                 <Map size={18} />
 
               </div>
-
 
               {activeRoadmap ? (
 
@@ -868,7 +1131,6 @@ const StudentDashboard = () => {
 
                   </div>
 
-
                   <div className="roadmap-progress-track">
 
                     <div
@@ -883,7 +1145,6 @@ const StudentDashboard = () => {
 
                   </div>
 
-
                   <div className="roadmap-progress-meta">
 
                     <span>
@@ -894,11 +1155,14 @@ const StudentDashboard = () => {
 
                     <button
                       onClick={() =>
-                        navigate('/student/roadmap')
+                        navigate(
+                          '/student/roadmap'
+                        )
                       }
                       style={{
                         border: 'none',
-                        background: 'transparent',
+                        background:
+                          'transparent',
                         color: '#0284c7',
                         cursor: 'pointer',
                         fontSize: '10px',
@@ -909,7 +1173,6 @@ const StudentDashboard = () => {
                     </button>
 
                   </div>
-
 
                   {roadmapSkills.length > 0 && (
 
@@ -957,10 +1220,9 @@ const StudentDashboard = () => {
 
             </div>
 
-
             {/* =========================
-                            PROFILE
-                        ========================= */}
+                    PROFILE
+            ========================= */}
 
             <div className="dashboard-card">
 
@@ -976,7 +1238,6 @@ const StudentDashboard = () => {
 
               </div>
 
-
               <div className="profile-details">
 
                 <div className="profile-detail">
@@ -990,7 +1251,6 @@ const StudentDashboard = () => {
                   </span>
 
                 </div>
-
 
                 <div className="profile-detail">
 
@@ -1006,7 +1266,6 @@ const StudentDashboard = () => {
 
                 </div>
 
-
                 <div className="profile-detail">
 
                   <span className="profile-detail-label">
@@ -1014,11 +1273,11 @@ const StudentDashboard = () => {
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.department || 'N/A'}
+                    {student?.department ||
+                      'N/A'}
                   </span>
 
                 </div>
-
 
                 <div className="profile-detail">
 
@@ -1034,7 +1293,6 @@ const StudentDashboard = () => {
 
                 </div>
 
-
                 <div className="profile-detail">
 
                   <span className="profile-detail-label">
@@ -1047,7 +1305,6 @@ const StudentDashboard = () => {
 
                 </div>
 
-
                 <div className="profile-detail">
 
                   <span className="profile-detail-label">
@@ -1055,7 +1312,8 @@ const StudentDashboard = () => {
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.status || 'Active'}
+                    {student?.status ||
+                      'Active'}
                   </span>
 
                 </div>

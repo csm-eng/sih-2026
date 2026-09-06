@@ -5,9 +5,13 @@ const {
     getSkillProfiles,
     getSkillProfileById,
     getStudentSkillProfiles,
+    getVerifiedStudentSkillProfiles,
+    getAISkillSuggestions,
+    confirmAISkill,
     updateSkillProfile,
     deleteSkillProfile,
-    extractSkillsFromResume
+    extractSkillsFromResume,
+    analyzeStudentProfile
 } = require("./skillProfile.controller");
 
 const authMiddleware = require("../../middleware/authMiddleware");
@@ -15,7 +19,9 @@ const roleMiddleware = require("../../middleware/roleMiddleware");
 
 const router = express.Router();
 
+// =====================================================
 // Create skill profile
+// =====================================================
 router.post(
     "/",
     authMiddleware,
@@ -23,7 +29,9 @@ router.post(
     createSkillProfile
 );
 
-// Get skill profiles
+// =====================================================
+// Get all skill profiles
+// =====================================================
 router.get(
     "/",
     authMiddleware,
@@ -31,15 +39,58 @@ router.get(
     getSkillProfiles
 );
 
+// =====================================================
 // Get all skill profiles of a particular student
+// =====================================================
 router.get(
     "/student/:studentId",
     authMiddleware,
-    roleMiddleware("student", "institute", "admin"),
+    roleMiddleware("student", "institute", "admin", "company"),
     getStudentSkillProfiles
 );
 
-// Extract and save skills from resume text using AI/ML service
+// =====================================================
+// Get only verified/confirmed skills of a student
+// =====================================================
+router.get(
+    "/student/:studentId/verified",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin", "company"),
+    getVerifiedStudentSkillProfiles
+);
+
+// =====================================================
+// Get AI-detected but unverified skill suggestions
+// =====================================================
+router.get(
+    "/student/:studentId/suggestions",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin", "company"),
+    getAISkillSuggestions
+);
+// =====================================================
+// Analyze complete student profile using AI
+// =====================================================
+
+router.post(
+    "/analyze/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    analyzeStudentProfile
+);
+// =====================================================
+// Confirm an AI-detected skill
+// =====================================================
+router.post(
+    "/:id/confirm",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    confirmAISkill
+);
+
+// =====================================================
+// Extract skills from resume text using AI/ML service
+// =====================================================
 router.post(
     "/extract/:studentId",
     authMiddleware,
@@ -47,7 +98,9 @@ router.post(
     extractSkillsFromResume
 );
 
+// =====================================================
 // Get one skill profile
+// =====================================================
 router.get(
     "/:id",
     authMiddleware,
@@ -55,7 +108,9 @@ router.get(
     getSkillProfileById
 );
 
+// =====================================================
 // Update skill profile
+// =====================================================
 router.put(
     "/:id",
     authMiddleware,
@@ -63,11 +118,16 @@ router.put(
     updateSkillProfile
 );
 
-// Delete skill profile
+// =====================================================
+// Delete/remove a skill profile
+// Student → can remove their own skill
+// Institute → can remove skills of their students
+// Admin → can remove any skill
+// =====================================================
 router.delete(
     "/:id",
     authMiddleware,
-    roleMiddleware("admin"),
+    roleMiddleware("student", "institute", "admin"),
     deleteSkillProfile
 );
 

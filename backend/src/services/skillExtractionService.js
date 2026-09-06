@@ -52,7 +52,9 @@ const extractAndSaveSkills = async (studentId, resumeText) => {
 
         const skillName = canonicalName || found.skill;
 
-        let skillDoc = await Skill.findOne({ name: skillName });
+        let skillDoc = await Skill.findOne({
+            name: new RegExp(`^${skillName}$`, "i"),
+        });
         if (!skillDoc) {
             skillDoc = await Skill.create({
                 name: skillName,
@@ -70,7 +72,8 @@ const extractAndSaveSkills = async (studentId, resumeText) => {
                 score,
                 level: scoreToLevel(score),
                 status: scoreToStatus(score),
-                source: "system",
+                source: "ai_extraction",
+                verified: false,
                 lastAssessedAt: new Date()
             },
             { upsert: true, new: true, runValidators: true }

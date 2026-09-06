@@ -4,23 +4,58 @@ const Student = require("../../models/student");
 const normalizeFields = (data) => {
     const copy = { ...data };
 
+    // Skills remain simple strings
     if (copy.skills && Array.isArray(copy.skills)) {
-        copy.skills = copy.skills.map((s) =>
-            typeof s === "string"
-                ? s
-                : s && s.name
-                    ? s.name
-                    : String(s)
+        copy.skills = copy.skills.map((skill) =>
+            typeof skill === "string"
+                ? skill.trim()
+                : skill && skill.name
+                    ? String(skill.name).trim()
+                    : String(skill).trim()
         );
     }
 
+    // Projects now support both:
+    // ["Project 1", "Project 2"]
+    // and
+    // [{ title, description, technologies, projectUrl }]
     if (copy.projects && Array.isArray(copy.projects)) {
-        copy.projects = copy.projects.map((p) =>
-            typeof p === "string"
-                ? p
-                : p && p.title
-                    ? p.title
-                    : String(p)
+        copy.projects = copy.projects.map((project) => {
+            if (typeof project === "string") {
+                return {
+                    title: project.trim(),
+                    description: "",
+                    technologies: [],
+                    projectUrl: ""
+                };
+            }
+
+            return {
+                title: project?.title ? String(project.title).trim() : "",
+                description: project?.description
+                    ? String(project.description).trim()
+                    : "",
+                technologies: Array.isArray(project?.technologies)
+                    ? project.technologies.map((tech) => String(tech).trim())
+                    : [],
+                projectUrl: project?.projectUrl
+                    ? String(project.projectUrl).trim()
+                    : ""
+            };
+        });
+    }
+
+    // Normalize interests
+    if (copy.interests && Array.isArray(copy.interests)) {
+        copy.interests = copy.interests.map((interest) =>
+            String(interest).trim()
+        );
+    }
+
+    // Normalize preferred roles
+    if (copy.preferredRoles && Array.isArray(copy.preferredRoles)) {
+        copy.preferredRoles = copy.preferredRoles.map((role) =>
+            String(role).trim()
         );
     }
 
@@ -35,7 +70,9 @@ const validateId = (id) => {
     }
 };
 
+// =====================================================
 // CREATE STUDENT
+// =====================================================
 const createStudent = async (studentData) => {
     const normalized = normalizeFields(studentData);
 
@@ -44,7 +81,9 @@ const createStudent = async (studentData) => {
     return await student.save();
 };
 
+// =====================================================
 // GET ALL STUDENTS
+// =====================================================
 const getAllStudents = async (user) => {
     if (user.role === "admin") {
         return await Student.find();
@@ -61,7 +100,9 @@ const getAllStudents = async (user) => {
     throw error;
 };
 
+// =====================================================
 // GET ONE STUDENT
+// =====================================================
 const getStudentById = async (id, user) => {
     validateId(id);
 
@@ -73,12 +114,12 @@ const getStudentById = async (id, user) => {
         throw error;
     }
 
-    // Admin can access any student
+    // Admin
     if (user.role === "admin") {
         return student;
     }
 
-    // Student can access only their own record
+    // Student → own profile only
     if (user.role === "student") {
         if (
             !user.studentId ||
@@ -94,7 +135,7 @@ const getStudentById = async (id, user) => {
         return student;
     }
 
-    // Institute can access only its own students
+    // Institute → own students
     if (user.role === "institute") {
         if (
             !student.instituteId ||
@@ -112,12 +153,19 @@ const getStudentById = async (id, user) => {
         return student;
     }
 
+    // Company → candidate profile
+    if (user.role === "company") {
+        return student;
+    }
+
     const error = new Error("Access denied");
     error.statusCode = 403;
     throw error;
 };
 
-// UPDATE STUDENT
+// =====================================================
+// UPDATE STUDENT PROFILE
+// =====================================================
 const updateStudent = async (id, studentData, user) => {
     validateId(id);
 
@@ -129,11 +177,16 @@ const updateStudent = async (id, studentData, user) => {
         throw error;
     }
 
-    // Admin can update any student
-    if (user.role === "admin") {
-        const normalized = normalizeFields(studentData);
+    const normalized = normalizeFields(studentData);
 
-        delete normalized._id;
+    // Never allow clients to modify MongoDB ID
+    delete normalized._id;
+
+    // =================================================
+    // ADMIN
+    // =================================================
+    if (user.role === "admin") {
+        // Institute relationship should be managed separately
         delete normalized.instituteId;
 
         return await Student.findByIdAndUpdate(
@@ -146,7 +199,9 @@ const updateStudent = async (id, studentData, user) => {
         );
     }
 
-    // Student can update only their own profile
+    // =================================================
+    // STUDENT
+    // =================================================
     if (user.role === "student") {
         if (
             !user.studentId ||
@@ -159,9 +214,7 @@ const updateStudent = async (id, studentData, user) => {
             throw error;
         }
 
-        const normalized = normalizeFields(studentData);
-
-        delete normalized._id;
+        // Students cannot change these system-managed fields
         delete normalized.instituteId;
         delete normalized.status;
 
@@ -175,7 +228,9 @@ const updateStudent = async (id, studentData, user) => {
         );
     }
 
-    // Institute can update only its own students
+    // =================================================
+    // INSTITUTE
+    // =================================================
     if (user.role === "institute") {
         if (
             !student.instituteId ||
@@ -190,9 +245,6 @@ const updateStudent = async (id, studentData, user) => {
             throw error;
         }
 
-        const normalized = normalizeFields(studentData);
-
-        delete normalized._id;
         delete normalized.instituteId;
 
         return await Student.findByIdAndUpdate(
@@ -210,11 +262,13 @@ const updateStudent = async (id, studentData, user) => {
     throw error;
 };
 
+// =====================================================
 // DELETE STUDENT
+// =====================================================
 const deleteStudent = async (id, user) => {
     validateId(id);
 
-    // Only admin should reach this operation
+    // Only admin can delete complete student accounts
     if (user.role !== "admin") {
         const error = new Error(
             "You are not authorized to delete students"

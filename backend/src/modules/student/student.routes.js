@@ -45,7 +45,7 @@ router.get(
 router.get(
     "/:id",
     authMiddleware,
-    roleMiddleware("student", "institute", "admin"),
+    roleMiddleware("student", "institute", "admin", "company"),
     getStudentById
 );
 

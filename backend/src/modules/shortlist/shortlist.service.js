@@ -266,7 +266,7 @@ const getOpportunityMatches = async (
     })
         .populate(
             "studentId",
-            "name email department year"
+            "name email department year cgpa"
         )
         .populate(
             "matchedSkills.skillId",
@@ -281,8 +281,46 @@ const getOpportunityMatches = async (
         });
 };
 
+// Update shortlist status by ID or upsert by studentId & opportunityId
+const updateShortlistStatus = async (idOrData, status, user) => {
+    if (user.role !== "company") {
+        const error = new Error("Only companies can shortlist candidates");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    let shortlist;
+    if (typeof idOrData === "string" && mongoose.Types.ObjectId.isValid(idOrData)) {
+        shortlist = await Shortlist.findById(idOrData);
+    } else if (idOrData.studentId && idOrData.opportunityId) {
+        shortlist = await Shortlist.findOne({
+            studentId: idOrData.studentId,
+            opportunityId: idOrData.opportunityId
+        });
+    }
+
+    if (shortlist) {
+        shortlist.status = status;
+        await shortlist.save();
+        return shortlist;
+    } else if (idOrData.studentId && idOrData.opportunityId) {
+        shortlist = await Shortlist.create({
+            studentId: idOrData.studentId,
+            opportunityId: idOrData.opportunityId,
+            matchScore: idOrData.matchScore || 0,
+            status: status
+        });
+        return shortlist;
+    }
+
+    const error = new Error("Shortlist record not found");
+    error.statusCode = 404;
+    throw error;
+};
+
 module.exports = {
     calculateMatch,
     getStudentMatches,
-    getOpportunityMatches
+    getOpportunityMatches,
+    updateShortlistStatus
 };

@@ -1,0 +1,162 @@
+.shortlist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.shortlist-bar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.opp-select-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opp-select-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.opp-select-group select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.shortlist-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shortlist-candidate-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.candidate-main-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.candidate-avatar-md {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.candidate-info-group {
+  flex: 1;
+}
+
+.candidate-name-txt {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.candidate-meta-txt {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.shortlist-status-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status-pill.shortlisted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-pill.matched {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-pill.rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.match-score-txt {
+  font-size: 13px;
+  color: #334155;
+}
+
+.shortlist-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.status-toggle-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-status.shortlist {
+  background: #059669;
+  color: #ffffff;
+}
+
+.btn-status.remove {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.btn-status.reject {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}

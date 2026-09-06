@@ -2,22 +2,49 @@ const mongoose = require("mongoose");
 
 const mockTestSchema = new mongoose.Schema(
     {
-        title: {
-            type: String,
+        studentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Student",
             required: true,
-            trim: true
         },
-        description: {
+
+        skillId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Skill",
+            required: true,
+        },
+
+        questions: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "MockQuestion",
+            },
+        ],
+
+        status: {
             type: String,
-            default: "",
-            trim: true
+            enum: [
+                "started",
+                "completed",
+            ],
+            default: "started",
         },
-        skills: {
-            type: [String],
-            default: []
-        }
+
+        startedAt: {
+            type: Date,
+            default: Date.now,
+        },
+
+        completedAt: {
+            type: Date,
+        },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+    }
 );
 
-module.exports = mongoose.model("MockTest", mockTestSchema);
+module.exports = mongoose.model(
+    "MockTest",
+    mockTestSchema
+);

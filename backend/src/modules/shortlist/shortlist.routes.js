@@ -6,7 +6,8 @@ const roleMiddleware = require("../../middleware/roleMiddleware");
 const {
     calculateMatch,
     getStudentMatches,
-    getOpportunityMatches
+    getOpportunityMatches,
+    updateShortlistStatus
 } = require("./shortlist.controller");
 
 const router = express.Router();
@@ -33,6 +34,21 @@ router.get(
     authMiddleware,
     roleMiddleware("company"),
     getOpportunityMatches
+);
+
+// Company - update candidate shortlist status
+router.patch(
+    "/status",
+    authMiddleware,
+    roleMiddleware("company"),
+    updateShortlistStatus
+);
+
+router.patch(
+    "/:id/status",
+    authMiddleware,
+    roleMiddleware("company"),
+    updateShortlistStatus
 );
 
 module.exports = router;

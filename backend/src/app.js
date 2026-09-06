@@ -61,7 +61,10 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/institute", instituteRoutes);
 app.use("/api/mentorships", mentorshipRoutes);
 app.use("/api/analytics", analyticsRoutes);
-
+app.use(
+    "/api/mock-tests",
+    require("./modules/mocktest/mocktest.routes")
+);
 // Root route
 
 app.get("/", (req, res) => {

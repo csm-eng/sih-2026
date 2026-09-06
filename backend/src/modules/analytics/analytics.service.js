@@ -221,6 +221,111 @@ const getSkillAnalytics = async (user) => {
     };
 };
 
+const getIndustryAnalytics = async (user) => {
+    const Opportunity = require("../../models/Opportunity");
+    const Application = require("../../models/Application");
+
+    // Skill Demands
+    const demands = await SkillDemand.find()
+        .populate("skillId", "name category")
+        .sort({ demandScore: -1 })
+        .lean();
+
+    // Skill Profiles across all students
+    const profiles = await SkillProfile.find({ verified: true })
+        .populate("skillId", "name category")
+        .lean();
+
+    // Skill Gaps
+    const gaps = await SkillGap.find()
+        .populate("skillId", "name category")
+        .lean();
+
+    // Opportunities & Applications for this company if company user
+    let opportunityStats = { total: 0, open: 0 };
+    let applicationStats = { total: 0, shortlisted: 0, selected: 0 };
+
+    if (user && user.companyId) {
+        const companyOpps = await Opportunity.find({ companyId: user.companyId });
+        opportunityStats.total = companyOpps.length;
+        opportunityStats.open = companyOpps.filter(o => o.status === 'open').length;
+
+        const oppIds = companyOpps.map(o => o._id);
+        const apps = await Application.find({ opportunityId: { $in: oppIds } });
+        applicationStats.total = apps.length;
+        applicationStats.shortlisted = apps.filter(a => a.status === 'shortlisted').length;
+        applicationStats.selected = apps.filter(a => a.status === 'selected').length;
+    }
+
+    // Top Demanded Skills
+    const topDemandedSkills = demands
+        .filter(d => d.skillId)
+        .slice(0, 10)
+        .map(d => ({
+            skillId: d.skillId._id,
+            skillName: d.skillId.name,
+            category: d.skillId.category,
+            requiredLevel: d.requiredLevel,
+            demandScore: d.demandScore,
+            demandCount: d.demandCount
+        }));
+
+    // Talent Shortages & Skill Level Average
+    const skillLevelMap = {};
+    profiles.forEach(p => {
+        if (!p.skillId) return;
+        const sId = p.skillId._id.toString();
+        if (!skillLevelMap[sId]) {
+            skillLevelMap[sId] = {
+                skillId: p.skillId._id,
+                skillName: p.skillId.name,
+                category: p.skillId.category,
+                verifiedCount: 0,
+                totalLevel: 0
+            };
+        }
+        skillLevelMap[sId].verifiedCount += 1;
+        skillLevelMap[sId].totalLevel += p.level || 0;
+    });
+
+    const averageSkillLevels = Object.values(skillLevelMap).map(item => ({
+        skillId: item.skillId,
+        skillName: item.skillName,
+        category: item.category,
+        verifiedCount: item.verifiedCount,
+        averageLevel: item.verifiedCount > 0 ? Number((item.totalLevel / item.verifiedCount).toFixed(2)) : 0
+    }));
+
+    // Common Skill Gaps
+    const gapMap = {};
+    gaps.forEach(g => {
+        if (!g.skillId) return;
+        const sId = g.skillId._id.toString();
+        if (!gapMap[sId]) {
+            gapMap[sId] = {
+                skillId: g.skillId._id,
+                skillName: g.skillId.name,
+                category: g.skillId.category,
+                affectedStudents: 0
+            };
+        }
+        gapMap[sId].affectedStudents += 1;
+    });
+
+    const commonSkillGaps = Object.values(gapMap)
+        .sort((a, b) => b.affectedStudents - a.affectedStudents)
+        .slice(0, 10);
+
+    return {
+        topDemandedSkills,
+        averageSkillLevels,
+        commonSkillGaps,
+        opportunityStats,
+        applicationStats
+    };
+};
+
 module.exports = {
-    getSkillAnalytics
+    getSkillAnalytics,
+    getIndustryAnalytics
 };
