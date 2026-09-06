@@ -7,7 +7,8 @@ import AuthLayout from '../components/layout/AuthLayout';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
-
+import LearningRoadmap from '../pages/student/roadmap/LearningRoadmap';
+import ResetPassword from '../pages/auth/ResetPassword';
 // Dummy components for Phase 1
 
 const InstituteDashboard = () => <div>Institute Dashboard</div>;
@@ -32,27 +33,29 @@ const AppRoutes = () => {
         <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* Auth Routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-        </Route>
-        
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        
+<Route element={<AuthLayout />}>
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/forgot-password" element={<ForgotPassword />} />
+  <Route
+    path="/reset-password/:token"
+    element={<ResetPassword />}
+  />
+</Route>
         {/* Student Routes */}
-        <Route 
-          path="/student/*" 
-          element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <Routes>
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="" element={<Navigate to="dashboard" replace />} />
-              </Routes>
-            </ProtectedRoute>
-          } 
-        />
-        
+        {/* Student Routes */}
+<Route 
+  path="/student/*" 
+  element={
+    <ProtectedRoute allowedRoles={['student']}>
+      <Routes>
+        <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="roadmap" element={<LearningRoadmap />} />
+        <Route path="" element={<Navigate to="dashboard" replace />} />
+      </Routes>
+    </ProtectedRoute>
+  } 
+/>
         {/* Institute Routes */}
         <Route 
           path="/institute/*" 

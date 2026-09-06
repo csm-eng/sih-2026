@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import {
   LayoutDashboard,
   UserRound,
@@ -18,61 +20,89 @@ import './StudentDashboard.css';
 
 const StudentDashboard = () => {
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [student, setStudent] = useState(null);
   const [skillProfiles, setSkillProfiles] = useState([]);
   const [skillGaps, setSkillGaps] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [roadmaps, setRoadmaps] = useState([]);
+  const [roadmapProgress, setRoadmapProgress] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?.studentId) {
-        setError('Student information is not available.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        // 1. Fetch student information
-        const studentResponse = await api.get(
-          `/students/${user.studentId}`
-        );
+        setLoading(true);
+        setError('');
 
-        setStudent(studentResponse.data.data);
+        if (!user?.studentId) {
+          setError('Student information is not available.');
+          return;
+        }
 
-        // 2. Fetch student's skill profiles
-        const skillProfileResponse = await api.get(
-          `/skill-profiles/student/${user.studentId}`
+        const studentId = user.studentId;
+
+        const [
+          studentResponse,
+          skillProfileResponse,
+          skillGapResponse,
+          recommendationResponse,
+          roadmapResponse,
+          progressResponse,
+        ] = await Promise.all([
+          api.get(`/students/${studentId}`),
+          api.get(`/skill-profiles/student/${studentId}`),
+          api.get(`/skill-gaps/student/${studentId}`),
+          api.get(`/recommendations/student/${studentId}`),
+          api.get('/roadmaps'),
+          api.get(`/roadmaps/progress/student/${studentId}`),
+        ]);
+
+        setStudent(
+          studentResponse.data?.data ||
+          studentResponse.data?.student ||
+          studentResponse.data
         );
 
         setSkillProfiles(
-          skillProfileResponse.data.data || []
-        );
-
-        // 3. Fetch student's skill gaps
-        const skillGapResponse = await api.get(
-          `/skill-gaps/student/${user.studentId}`
+          skillProfileResponse.data?.data ||
+          skillProfileResponse.data?.skillProfiles ||
+          []
         );
 
         setSkillGaps(
-          skillGapResponse.data.data || []
-        );
-
-        // 4. Fetch student's recommendations
-        const recommendationResponse = await api.get(
-          `/recommendations/student/${user.studentId}`
+          skillGapResponse.data?.data ||
+          skillGapResponse.data?.skillGaps ||
+          []
         );
 
         setRecommendations(
-          recommendationResponse.data.data || []
+          recommendationResponse.data?.data ||
+          recommendationResponse.data?.recommendations ||
+          []
         );
+
+        setRoadmaps(
+          roadmapResponse.data?.data ||
+          roadmapResponse.data?.roadmaps ||
+          []
+        );
+
+        setRoadmapProgress(
+          progressResponse.data?.data ||
+          progressResponse.data?.progress ||
+          []
+        );
+
       } catch (err) {
+        console.error('Dashboard error:', err);
+
         setError(
           err.response?.data?.message ||
-          'Unable to load student dashboard.'
+          'Unable to load dashboard data.'
         );
       } finally {
         setLoading(false);
@@ -84,6 +114,60 @@ const StudentDashboard = () => {
 
   const handleLogout = () => {
     logout();
+    navigate('/login');
+  };
+
+  /* =========================
+     ROADMAP DATA
+  ========================= */
+
+  const activeProgress =
+    roadmapProgress.length > 0
+      ? roadmapProgress[0]
+      : null;
+
+  const activeRoadmap =
+    activeProgress?.roadmapId ||
+    roadmaps[0] ||
+    null;
+
+  const progress = Number(activeProgress?.progress || 0);
+
+  const roadmapTitle =
+    typeof activeRoadmap === 'object'
+      ? activeRoadmap?.title
+      : 'Learning Roadmap';
+
+  const roadmapDescription =
+    typeof activeRoadmap === 'object'
+      ? activeRoadmap?.description
+      : '';
+
+  const roadmapSkills =
+    typeof activeRoadmap === 'object'
+      ? activeRoadmap?.skills || []
+      : [];
+
+  /* =========================
+     HELPERS
+  ========================= */
+
+  const getSkillName = (item) => {
+    return (
+      item?.skillId?.name ||
+      item?.skill?.name ||
+      item?.name ||
+      'Skill'
+    );
+  };
+
+  const getSkillCategory = (item) => {
+    return (
+      item?.skillId?.category ||
+      item?.skill?.category ||
+      item?.category ||
+      'Technical Skill'
+    );
   };
 
   if (loading) {
@@ -94,76 +178,104 @@ const StudentDashboard = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="student-dashboard-loading">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  const initials = student?.name
-    ? student.name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase()
-    : 'ST';
-
   return (
     <div className="student-dashboard">
 
-      {/* Sidebar */}
+      {/* =========================
+                SIDEBAR
+            ========================= */}
+
       <aside className="student-sidebar">
+
         <div className="sidebar-brand">
-          <div className="sidebar-logo">S</div>
-          <span>SmartHire Hub</span>
+
+          <div className="sidebar-logo">
+            S
+          </div>
+
+          <span>
+            SmartHire Hub
+          </span>
+
         </div>
 
         <div className="sidebar-section-title">
-          Workspace
+          Student Portal
         </div>
 
         <nav className="sidebar-nav">
-          <button className="sidebar-link active">
+
+          {/* Dashboard */}
+
+          <button
+            className="sidebar-link active"
+            onClick={() => navigate('/student/dashboard')}
+          >
             <LayoutDashboard size={18} />
-            <span>Overview</span>
+            <span>Dashboard</span>
           </button>
+
+
+          {/* Profile */}
 
           <button className="sidebar-link">
             <UserRound size={18} />
             <span>My Profile</span>
           </button>
 
+
+          {/* Skills */}
+
           <button className="sidebar-link">
             <Brain size={18} />
-            <span>My Skills</span>
+            <span>Skills</span>
           </button>
+
+
+          {/* Skill Gaps */}
 
           <button className="sidebar-link">
             <Target size={18} />
             <span>Skill Gaps</span>
           </button>
 
-          <button className="sidebar-link">
+
+          {/* Learning Roadmap */}
+
+          <button
+            className="sidebar-link"
+            onClick={() => navigate('/student/roadmap')}
+          >
             <Map size={18} />
             <span>Learning Roadmap</span>
           </button>
+
+
+          {/* Opportunities */}
 
           <button className="sidebar-link">
             <BriefcaseBusiness size={18} />
             <span>Opportunities</span>
           </button>
 
+
+          {/* Applications */}
+
           <button className="sidebar-link">
             <FileText size={18} />
             <span>Applications</span>
           </button>
+
         </nav>
 
+
+        {/* =========================
+                    SIDEBAR BOTTOM
+                ========================= */}
+
         <div className="sidebar-bottom">
-          <div className="sidebar-divider" />
+
+          <div className="sidebar-divider"></div>
 
           <button
             className="sidebar-link logout-button"
@@ -172,88 +284,158 @@ const StudentDashboard = () => {
             <LogOut size={18} />
             <span>Logout</span>
           </button>
+
         </div>
+
       </aside>
 
-      {/* Main */}
+
+      {/* =========================
+                MAIN
+            ========================= */}
+
       <main className="student-main">
 
-        {/* Topbar */}
+        {/* =========================
+                    TOPBAR
+                ========================= */}
+
         <header className="student-topbar">
+
           <div className="topbar-title">
-            Student Workspace
+            Student Dashboard
           </div>
 
           <div className="student-profile">
+
             <div className="profile-avatar">
-              {initials}
+              {(student?.name || user?.name || 'S')
+                .charAt(0)
+                .toUpperCase()}
             </div>
 
             <div className="profile-info">
+
               <span className="profile-name">
-                {student?.name}
+                {student?.name || user?.name || 'Student'}
               </span>
 
               <span className="profile-role">
-                Student
+                {student?.department || 'Student'}
               </span>
+
             </div>
+
           </div>
+
         </header>
 
-        {/* Content */}
-        <section className="student-content">
 
-          {/* Header */}
+        {/* =========================
+                    CONTENT
+                ========================= */}
+
+        <div className="student-content">
+
+          {error && (
+            <div
+              style={{
+                marginBottom: '20px',
+                padding: '12px 15px',
+                borderRadius: '8px',
+                background: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '13px',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+
+          {/* =========================
+                        HEADER
+                    ========================= */}
+
           <div className="dashboard-header">
+
             <span className="dashboard-label">
-              Overview
+              STUDENT OVERVIEW
             </span>
 
             <h1>
-              Welcome back,{' '}
-              {student?.name?.split(' ')[0]}.
+              Welcome, {student?.name || user?.name || 'Student'}
             </h1>
 
             <p>
-              Track your skills, identify gaps and
-              discover opportunities aligned with your
-              career goals.
+              Track your skills, identify gaps and prepare
+              for opportunities.
             </p>
+
           </div>
 
-          {/* Summary Cards */}
-          <div className="summary-grid">
+
+          {/* =========================
+                        SUMMARY CARDS
+                    ========================= */}
+
+          <section className="summary-grid">
 
             <div className="summary-card">
+
               <div className="summary-card-label">
-                CGPA
+                Department
               </div>
 
               <div className="summary-card-value">
-                {student?.cgpa ?? '—'}
+                {student?.department || 'N/A'}
               </div>
 
               <div className="summary-card-meta">
-                Academic performance
+                Academic Department
               </div>
+
             </div>
 
+
             <div className="summary-card">
+
+              <div className="summary-card-label">
+                Year
+              </div>
+
+              <div className="summary-card-value">
+                {student?.year
+                  ? `Year ${student.year}`
+                  : 'N/A'}
+              </div>
+
+              <div className="summary-card-meta">
+                Current Academic Year
+              </div>
+
+            </div>
+
+
+            <div className="summary-card">
+
               <div className="summary-card-label">
                 Skills
               </div>
 
               <div className="summary-card-value">
-                {student?.skills?.length || 0}
+                {skillProfiles.length}
               </div>
 
               <div className="summary-card-meta">
-                Skills in your profile
+                Skills in Profile
               </div>
+
             </div>
 
+
             <div className="summary-card">
+
               <div className="summary-card-label">
                 Skill Gaps
               </div>
@@ -263,387 +445,631 @@ const StudentDashboard = () => {
               </div>
 
               <div className="summary-card-meta">
-                Areas requiring improvement
+                Areas to Improve
               </div>
+
             </div>
 
-            <div className="summary-card">
-              <div className="summary-card-label">
-                Recommendations
-              </div>
+          </section>
 
-              <div className="summary-card-value">
-                {recommendations.length}
-              </div>
 
-              <div className="summary-card-meta">
-                Suggested learning actions
-              </div>
-            </div>
+          {/* =========================
+                        DASHBOARD GRID
+                    ========================= */}
 
-          </div>
+          <section className="dashboard-grid">
 
-          {/* Skills + Skill Gaps */}
-          <div className="dashboard-grid">
 
-            {/* Skills */}
+            {/* =========================
+                            YOUR SKILLS
+                        ========================= */}
+
             <div className="dashboard-card">
 
               <div className="dashboard-card-header">
-                <h3>Your Skills</h3>
+
+                <h3>
+                  Your Skills
+                </h3>
 
                 <span>
-                  Skill intelligence
+                  Current skill profile
                 </span>
+
               </div>
 
-              <div className="skill-list">
 
-                {skillProfiles.length > 0 ? (
-                  skillProfiles.map((profile) => {
-                    const score = Number(
-                      profile.score || 0
-                    );
+              {skillProfiles.length > 0 ? (
+
+                <div className="skill-list">
+
+                  {skillProfiles.map((profile, index) => {
+
+                    const level =
+                      Number(profile?.level || 0);
 
                     return (
                       <div
                         className="skill-row"
-                        key={profile._id}
+                        key={profile?._id || index}
                       >
 
                         <div className="skill-row-top">
+
                           <span>
-                            {profile.skillId?.name ||
-                              'Unknown skill'}
+                            {getSkillName(profile)}
                           </span>
 
                           <span>
-                            {score}/100
+                            Level {level}
                           </span>
+
                         </div>
 
                         <div className="skill-bar">
+
                           <div
                             className="skill-bar-fill"
                             style={{
-                              width: `${score}%`,
+                              width: `${Math.min(
+                                level * 20,
+                                100
+                              )}%`,
                             }}
-                          />
+                          ></div>
+
                         </div>
 
                         <div className="skill-profile-meta">
 
                           <span>
-                            Level{' '}
-                            {profile.level}
-                          </span>
-
-                          <span>
-                            {
-                              profile.experienceMonths
-                            }{' '}
-                            months experience
-                          </span>
-
-                          <span>
-                            {profile.status}
-                          </span>
-
-                          <span>
-                            {profile.verified
-                              ? 'Verified'
-                              : 'Not verified'}
+                            {getSkillCategory(profile)}
                           </span>
 
                         </div>
 
                       </div>
                     );
-                  })
-                ) : (
-                  <p>
-                    No skill profiles available yet.
-                  </p>
-                )}
+                  })}
 
-              </div>
+                </div>
+
+              ) : (
+
+                <p
+                  style={{
+                    color: '#94a3b8',
+                    fontSize: '12px',
+                  }}
+                >
+                  No skills added yet.
+                </p>
+
+              )}
+
             </div>
 
-            {/* Skill Gaps */}
+
+            {/* =========================
+                            SKILL GAPS
+                        ========================= */}
+
             <div className="dashboard-card">
 
               <div className="dashboard-card-header">
-                <h3>Skill Gaps</h3>
+
+                <h3>
+                  Skill Gaps
+                </h3>
 
                 <span>
-                  Areas to improve
+                  Areas that need improvement
                 </span>
-              </div>
-
-              <div className="skill-gap-list">
-
-                {skillGaps.length > 0 ? (
-                  skillGaps.map((gap) => (
-                    <div
-                      className="skill-gap-row"
-                      key={gap._id}
-                    >
-
-                      <div className="skill-gap-top">
-
-                        <div>
-                          <span className="skill-gap-name">
-                            {gap.skillId?.name ||
-                              'Unknown skill'}
-                          </span>
-
-                          <span className="skill-gap-category">
-                            {gap.skillId?.category ||
-                              'Skill'}
-                          </span>
-                        </div>
-
-                        <span
-                          className={`skill-gap-priority ${gap.priority || 'low'
-                            }`}
-                        >
-                          {gap.priority || 'low'}
-                        </span>
-
-                      </div>
-
-                      <div className="skill-gap-levels">
-
-                        <div>
-                          <span>
-                            Current
-                          </span>
-
-                          <strong>
-                            {gap.currentLevel}
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>
-                            Required
-                          </span>
-
-                          <strong>
-                            {gap.requiredLevel}
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>
-                            Gap
-                          </span>
-
-                          <strong>
-                            {gap.gap}
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>
-                            Demand
-                          </span>
-
-                          <strong>
-                            {gap.demandScore}
-                          </strong>
-                        </div>
-
-                      </div>
-
-                    </div>
-                  ))
-                ) : (
-                  <p>
-                    No skill gaps identified yet.
-                  </p>
-                )}
 
               </div>
+
+
+              {skillGaps.length > 0 ? (
+
+                <div className="skill-gap-list">
+
+                  {skillGaps.map((gap, index) => {
+
+                    const priority =
+                      String(
+                        gap?.priority || 'medium'
+                      ).toLowerCase();
+
+                    return (
+                      <div
+                        className="skill-gap-row"
+                        key={gap?._id || index}
+                      >
+
+                        <div className="skill-gap-top">
+
+                          <div>
+
+                            <span className="skill-gap-name">
+                              {getSkillName(gap)}
+                            </span>
+
+                            <span className="skill-gap-category">
+                              {getSkillCategory(gap)}
+                            </span>
+
+                          </div>
+
+                          <span
+                            className={`skill-gap-priority ${priority}`}
+                          >
+                            {priority}
+                          </span>
+
+                        </div>
+
+
+                        <div className="skill-gap-levels">
+
+                          <div>
+
+                            <span>
+                              Current
+                            </span>
+
+                            <strong>
+                              {gap?.currentLevel ??
+                                gap?.current ??
+                                0}
+                            </strong>
+
+                          </div>
+
+
+                          <div>
+
+                            <span>
+                              Required
+                            </span>
+
+                            <strong>
+                              {gap?.requiredLevel ??
+                                gap?.required ??
+                                0}
+                            </strong>
+
+                          </div>
+
+
+                          <div>
+
+                            <span>
+                              Gap
+                            </span>
+
+                            <strong>
+                              {gap?.gap ??
+                                gap?.difference ??
+                                0}
+                            </strong>
+
+                          </div>
+
+
+                          <div>
+
+                            <span>
+                              Status
+                            </span>
+
+                            <strong>
+                              Improve
+                            </strong>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    );
+                  })}
+
+                </div>
+
+              ) : (
+
+                <p
+                  style={{
+                    color: '#94a3b8',
+                    fontSize: '12px',
+                  }}
+                >
+                  No skill gaps identified.
+                </p>
+
+              )}
+
             </div>
 
-            {/* Recommendations */}
+
+            {/* =========================
+                            RECOMMENDATIONS
+                        ========================= */}
+
             <div className="dashboard-card recommendation-card">
 
-              <div className="dashboard-card-header">
-                <div className="recommendation-title">
-                  <BookOpen size={18} />
+              <div className="dashboard-card-header recommendation-title">
+
+                <div>
 
                   <h3>
                     Recommended Actions
                   </h3>
+
+                  <span>
+                    Improve your employability
+                  </span>
+
                 </div>
 
-                <span>
-                  Based on your skill gaps
-                </span>
+                <BriefcaseBusiness size={18} />
+
               </div>
 
-              <div className="recommendation-list">
 
-                {recommendations.length > 0 ? (
-                  recommendations.map(
-                    (recommendation) => (
-                      <div
-                        className="recommendation-row"
-                        key={recommendation._id}
-                      >
+              {recommendations.length > 0 ? (
 
-                        <div className="recommendation-main">
+                <div className="recommendation-list">
 
-                          <div className="recommendation-icon">
-                            <BookOpen
-                              size={17}
-                            />
-                          </div>
+                  {recommendations.map(
+                    (recommendation, index) => {
 
-                          <div className="recommendation-content">
+                      const priority =
+                        String(
+                          recommendation?.priority ||
+                          'medium'
+                        ).toLowerCase();
 
-                            <div className="recommendation-heading">
+                      return (
+                        <div
+                          className="recommendation-row"
+                          key={
+                            recommendation?._id ||
+                            index
+                          }
+                        >
 
-                              <h4>
-                                {
-                                  recommendation.title
-                                }
-                              </h4>
+                          <div className="recommendation-main">
 
-                              <span
-                                className={`recommendation-priority ${recommendation.priority ||
-                                  'low'
-                                  }`}
-                              >
-                                {
-                                  recommendation.priority ||
-                                  'low'
-                                }
-                              </span>
+                            <div className="recommendation-icon">
+
+                              <BookOpen size={17} />
 
                             </div>
 
-                            <p>
-                              {
-                                recommendation.description
-                              }
-                            </p>
 
-                            <div className="recommendation-meta">
+                            <div className="recommendation-content">
 
-                              <span>
-                                Skill:{' '}
-                                {
-                                  recommendation
-                                    .skillId
-                                    ?.name
-                                }
-                              </span>
+                              <div className="recommendation-heading">
 
-                              <span>
-                                Type:{' '}
-                                {
-                                  recommendation.type
-                                }
-                              </span>
+                                <h4>
+                                  {recommendation?.title ||
+                                    'Recommended Action'}
+                                </h4>
 
-                              <span>
-                                {recommendation.completed
-                                  ? 'Completed'
-                                  : 'Not completed'}
-                              </span>
+                                <span
+                                  className={`recommendation-priority ${priority}`}
+                                >
+                                  {priority}
+                                </span>
+
+                              </div>
+
+
+                              <p>
+                                {recommendation?.description ||
+                                  recommendation?.reason ||
+                                  'Work on this recommendation to improve your profile.'}
+                              </p>
+
+
+                              <div className="recommendation-meta">
+
+                                {recommendation?.type && (
+                                  <span>
+                                    {recommendation.type}
+                                  </span>
+                                )}
+
+                                {recommendation?.skillId?.name && (
+                                  <span>
+                                    Skill:{' '}
+                                    {recommendation.skillId.name}
+                                  </span>
+                                )}
+
+                              </div>
 
                             </div>
 
                           </div>
 
                         </div>
+                      );
+                    }
+                  )}
 
-                      </div>
-                    )
-                  )
-                ) : (
-                  <p>
-                    No recommendations available yet.
-                  </p>
-                )}
+                </div>
 
-              </div>
+              ) : (
+
+                <p
+                  style={{
+                    color: '#94a3b8',
+                    fontSize: '12px',
+                  }}
+                >
+                  No recommendations available yet.
+                </p>
+
+              )}
+
             </div>
 
-            {/* Profile Information */}
+
+            {/* =========================
+                            LEARNING ROADMAP
+                        ========================= */}
+
+            <div className="dashboard-card roadmap-card">
+
+              <div className="dashboard-card-header roadmap-title">
+
+                <div>
+
+                  <h3>
+                    Learning Roadmap
+                  </h3>
+
+                  <span>
+                    Your personalized learning journey
+                  </span>
+
+                </div>
+
+                <Map size={18} />
+
+              </div>
+
+
+              {activeRoadmap ? (
+
+                <div className="roadmap-content">
+
+                  <div className="roadmap-header-row">
+
+                    <div>
+
+                      <h4>
+                        {roadmapTitle ||
+                          'Learning Roadmap'}
+                      </h4>
+
+                      <p>
+                        {roadmapDescription ||
+                          'Follow this roadmap to improve your skills and career readiness.'}
+                      </p>
+
+                    </div>
+
+                    <div className="roadmap-progress-value">
+                      {progress}%
+                    </div>
+
+                  </div>
+
+
+                  <div className="roadmap-progress-track">
+
+                    <div
+                      className="roadmap-progress-fill"
+                      style={{
+                        width: `${Math.min(
+                          Math.max(progress, 0),
+                          100
+                        )}%`,
+                      }}
+                    ></div>
+
+                  </div>
+
+
+                  <div className="roadmap-progress-meta">
+
+                    <span>
+                      {progress >= 100
+                        ? 'Completed'
+                        : 'In Progress'}
+                    </span>
+
+                    <button
+                      onClick={() =>
+                        navigate('/student/roadmap')
+                      }
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#0284c7',
+                        cursor: 'pointer',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                      }}
+                    >
+                      View Roadmap →
+                    </button>
+
+                  </div>
+
+
+                  {roadmapSkills.length > 0 && (
+
+                    <div className="roadmap-skills">
+
+                      {roadmapSkills.map(
+                        (skill, index) => (
+                          <span
+                            className="roadmap-skill"
+                            key={index}
+                          >
+                            {skill}
+                          </span>
+                        )
+                      )}
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              ) : (
+
+                <div className="roadmap-empty">
+
+                  <Map size={28} />
+
+                  <div>
+
+                    <strong>
+                      No roadmap assigned yet
+                    </strong>
+
+                    <p>
+                      Your learning roadmap will appear
+                      here once it is assigned.
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+
+            {/* =========================
+                            PROFILE
+                        ========================= */}
+
             <div className="dashboard-card">
 
               <div className="dashboard-card-header">
+
                 <h3>
                   Profile Information
                 </h3>
 
                 <span>
-                  Current
+                  Academic details
                 </span>
+
               </div>
+
 
               <div className="profile-details">
 
                 <div className="profile-detail">
+
                   <span className="profile-detail-label">
                     Name
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.name}
+                    {student?.name || 'N/A'}
                   </span>
+
                 </div>
 
+
                 <div className="profile-detail">
+
                   <span className="profile-detail-label">
                     Email
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.email}
+                    {student?.email ||
+                      user?.email ||
+                      'N/A'}
                   </span>
+
                 </div>
 
+
                 <div className="profile-detail">
+
                   <span className="profile-detail-label">
                     Department
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.department}
+                    {student?.department || 'N/A'}
                   </span>
+
                 </div>
 
+
                 <div className="profile-detail">
+
                   <span className="profile-detail-label">
                     Year
                   </span>
 
                   <span className="profile-detail-value">
-                    Year {student?.year}
+                    {student?.year
+                      ? `Year ${student.year}`
+                      : 'N/A'}
                   </span>
+
                 </div>
 
+
                 <div className="profile-detail">
+
+                  <span className="profile-detail-label">
+                    CGPA
+                  </span>
+
+                  <span className="profile-detail-value">
+                    {student?.cgpa ?? 'N/A'}
+                  </span>
+
+                </div>
+
+
+                <div className="profile-detail">
+
                   <span className="profile-detail-label">
                     Status
                   </span>
 
                   <span className="profile-detail-value">
-                    {student?.status}
+                    {student?.status || 'Active'}
                   </span>
+
                 </div>
 
               </div>
+
             </div>
 
-          </div>
-        </section>
+          </section>
+
+        </div>
+
       </main>
+
     </div>
   );
 };

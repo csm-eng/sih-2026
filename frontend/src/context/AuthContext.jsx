@@ -98,7 +98,52 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+const register = async (userData) => {
+  setLoading(true);
 
+  try {
+    const response = await authService.register(userData);
+
+    return {
+      success: true,
+      message: response?.message || 'Registration successful',
+      data: response?.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        'Registration failed',
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+const forgotPassword = async (email) => {
+  setLoading(true);
+
+  try {
+    const response = await authService.forgotPassword(email);
+
+    return {
+      success: true,
+      message: response?.message || 'Password reset request successful',
+      resetLink: response?.resetLink || null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        'Password reset failed',
+    };
+  } finally {
+    setLoading(false);
+  }
+};
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -108,16 +153,18 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = () => Boolean(token);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        login,
-        logout,
-        isAuthenticated,
-      }}
-    >
+<AuthContext.Provider
+  value={{
+    user,
+    token,
+    loading,
+    login,
+    register,
+    forgotPassword,
+    logout,
+    isAuthenticated,
+  }}
+>
       {children}
     </AuthContext.Provider>
   );

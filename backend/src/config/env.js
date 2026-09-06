@@ -12,8 +12,12 @@ const MONGO_URI =
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+const AI_SERVICE_URL =
+    process.env.AI_SERVICE_URL || "http://localhost:8000";
+
 module.exports = {
     PORT,
     MONGO_URI,
-    JWT_SECRET
+    JWT_SECRET,
+    AI_SERVICE_URL
 };

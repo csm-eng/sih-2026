@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+rapidfuzz
+numpy
+pdfplumber
+python-multipart
+# optional upgrade path (needs internet to download model at first run):
+# sentence-transformers

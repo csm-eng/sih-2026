@@ -1,4 +1,5 @@
 const skillProfileService = require("./skillProfile.service");
+const skillExtractionService = require("../../services/skillExtractionService");
 
 const createSkillProfile = async (req, res, next) => {
     try {
@@ -102,11 +103,31 @@ const deleteSkillProfile = async (req, res, next) => {
     }
 };
 
+// Extract skills from resume text using AI/ML service
+const extractSkillsFromResume = async (req, res, next) => {
+    try {
+        const profiles =
+            await skillExtractionService.extractAndSaveSkills(
+                req.params.studentId,
+                req.body.text
+            );
+
+        res.status(200).json({
+            success: true,
+            message: "Skills extracted and saved successfully",
+            data: profiles
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createSkillProfile,
     getSkillProfiles,
     getSkillProfileById,
     getStudentSkillProfiles,
     updateSkillProfile,
-    deleteSkillProfile
+    deleteSkillProfile,
+    extractSkillsFromResume
 };

@@ -6,7 +6,8 @@ const {
     getSkillProfileById,
     getStudentSkillProfiles,
     updateSkillProfile,
-    deleteSkillProfile
+    deleteSkillProfile,
+    extractSkillsFromResume
 } = require("./skillProfile.controller");
 
 const authMiddleware = require("../../middleware/authMiddleware");
@@ -36,6 +37,14 @@ router.get(
     authMiddleware,
     roleMiddleware("student", "institute", "admin"),
     getStudentSkillProfiles
+);
+
+// Extract and save skills from resume text using AI/ML service
+router.post(
+    "/extract/:studentId",
+    authMiddleware,
+    roleMiddleware("student", "institute", "admin"),
+    extractSkillsFromResume
 );
 
 // Get one skill profile

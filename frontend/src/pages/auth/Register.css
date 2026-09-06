@@ -1,0 +1,488 @@
+/* =========================================================
+   REGISTER PAGE
+========================================================= */
+
+.register-page {
+    width: 100%;
+    min-height: 100vh;
+
+    display: grid;
+    grid-template-columns: 58% 42%;
+
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   LEFT HERO
+========================================================= */
+
+.register-hero {
+    position: relative;
+    overflow: hidden;
+
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+
+    padding: 70px 8%;
+
+    background: #0f172a;
+    color: #ffffff;
+}
+
+.register-hero-content {
+    width: 100%;
+    max-width: 680px;
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.register-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.register-brand-mark {
+    width: 40px;
+    height: 40px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 11px;
+
+    background: #ffffff;
+    color: #0f172a;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   BADGE
+========================================================= */
+
+.register-badge {
+    width: fit-content;
+
+    margin-top: 75px;
+    padding: 9px 15px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    color: #cbd5e1;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   HERO TITLE
+========================================================= */
+
+.register-hero-content h1 {
+    margin: 28px 0 24px;
+
+    max-width: 620px;
+
+    color: #ffffff;
+
+    font-size: clamp(48px, 5vw, 72px);
+    line-height: 1.03;
+
+    letter-spacing: -3px;
+
+    font-weight: 750;
+}
+
+.register-hero-content h1 span {
+    color: #7dd3fc;
+}
+
+
+/* =========================================================
+   HERO DESCRIPTION
+========================================================= */
+
+.register-hero-content > p {
+    max-width: 540px;
+
+    margin: 0;
+
+    color: #94a3b8;
+
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   HERO STATS
+========================================================= */
+
+.register-stats {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 55px;
+
+    margin-top: 52px;
+}
+
+.register-stats div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.register-stats strong {
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.register-stats span {
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   RIGHT PANEL
+========================================================= */
+
+.register-panel {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 60px;
+
+    background: #ffffff;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 410px;
+}
+
+
+/* =========================================================
+   MOBILE BRAND
+========================================================= */
+
+.register-mobile-brand {
+    display: none;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.register-header {
+    margin-bottom: 32px;
+}
+
+.register-label {
+    display: block;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+}
+
+.register-header h2 {
+    margin: 10px 0 9px;
+
+    color: #0f172a;
+
+    font-size: 31px;
+    line-height: 1.2;
+
+    letter-spacing: -1px;
+}
+
+.register-header p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.register-form-group {
+    margin-bottom: 18px;
+}
+
+.register-form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #334155;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   INPUT WRAPPER
+========================================================= */
+
+.register-input-wrapper {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+.register-input-wrapper svg {
+    position: absolute;
+
+    left: 15px;
+
+    color: #94a3b8;
+
+    pointer-events: none;
+}
+
+.register-input-wrapper input,
+.register-input-wrapper select {
+    width: 100%;
+    height: 50px;
+
+    padding: 13px 15px 13px 45px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: #0f172a;
+
+    font-family: inherit;
+    font-size: 14px;
+
+    transition: 0.2s ease;
+}
+
+.register-input-wrapper input::placeholder {
+    color: #94a3b8;
+}
+
+.register-input-wrapper input:focus,
+.register-input-wrapper select:focus {
+    border-color: #38bdf8;
+
+    box-shadow:
+        0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+.register-input-wrapper select {
+    cursor: pointer;
+
+    appearance: auto;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.register-error {
+    margin-bottom: 18px;
+
+    padding: 11px 13px;
+
+    border-radius: 9px;
+
+    background: #fef2f2;
+    color: #dc2626;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   SUCCESS
+========================================================= */
+
+.register-success {
+    margin-bottom: 18px;
+
+    padding: 11px 13px;
+
+    border-radius: 9px;
+
+    background: #f0fdf4;
+    color: #16a34a;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   REGISTER BUTTON
+========================================================= */
+
+.register-button {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #0f172a;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 650;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.register-button:hover {
+    background: #1e293b;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 20px rgba(15, 23, 42, 0.15);
+}
+
+.register-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   LOGIN PROMPT
+========================================================= */
+
+.register-prompt {
+    margin-top: 25px;
+
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.register-prompt a {
+    margin-left: 5px;
+
+    color: #0284c7;
+
+    font-weight: 650;
+
+    text-decoration: none;
+}
+
+.register-prompt a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .register-page {
+        grid-template-columns: 1fr;
+    }
+
+    .register-hero {
+        display: none;
+    }
+
+    .register-panel {
+        min-height: 100vh;
+
+        padding: 30px 22px;
+    }
+
+    .register-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+
+        margin-bottom: 45px;
+
+        color: #0f172a;
+
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .register-mobile-brand .register-brand-mark {
+        background: #0f172a;
+        color: #ffffff;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .register-panel {
+        padding: 24px 18px;
+    }
+
+    .register-header h2 {
+        font-size: 27px;
+    }
+}
